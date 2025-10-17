@@ -1,0 +1,3 @@
+# 📁 Uploads directory for avatars
+# This .gitkeep file ensures the directory is tracked by Git
+# Actual uploads are ignored via .gitignore

@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  uuid          String    @unique @default(uuid())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  displayName   String?   @map("display_name")
+  avatarUrl     String?   @map("avatar_url")
+  bio           String?
+  timezone      String    @default("UTC")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastLoginAt   DateTime? @map("last_login_at")
+  isActive      Boolean   @default(true) @map("is_active")
+  isVerified    Boolean   @default(false) @map("is_verified")
+  isPremium     Boolean   @default(false) @map("is_premium")
+
+  settings      StreamerSettings?
+  sessions      Session[]
+  paymentMethods PaymentMethod[]
+  donationGoals DonationGoal[]
+  bannedContent BannedContent[]
+  socialLinks   SocialLink[]
+  statistics    UserStatistic[]
+
+  @@map("users")
+}
+
+model StreamerSettings {
+  id                      Int      @id @default(autoincrement())
+  userId                  Int      @unique @map("user_id")
+  donationGoal            Int      @default(1000) @map("donation_goal")
+  donationGoalDescription String?  @map("donation_goal_description")
+  minDonationAmount       Decimal  @default(1.00) @map("min_donation_amount") @db.Decimal(10, 2)
+  trackRequestMinimum     Decimal  @default(20.00) @map("track_request_minimum") @db.Decimal(10, 2)
+  alertVolume             Int      @default(75) @map("alert_volume")
+  alertDuration           Int      @default(5) @map("alert_duration")
+  soundAlertEnabled       Boolean  @default(true) @map("sound_alert_enabled")
+  visualAlertEnabled      Boolean  @default(true) @map("visual_alert_enabled")
+  ttsEnabled              Boolean  @default(false) @map("tts_enabled")
+  theme                   String   @default("purple")
+  primaryColor            String   @default("#7c3aed") @map("primary_color")
+  accentColor             String   @default("#ec4899") @map("accent_color")
+  currency                String   @default("USD")
+  language                String   @default("en")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("streamer_settings")
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  userId             Int       @map("user_id")
+  token              String    @unique
+  refreshToken       String?   @unique @map("refresh_token")
+  expiresAt          DateTime  @map("expires_at")
+  refreshExpiresAt   DateTime? @map("refresh_expires_at")
+  ipAddress          String?   @map("ip_address")
+  userAgent          String?   @map("user_agent")
+  deviceInfo         Json?     @map("device_info")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  lastActivityAt     DateTime  @default(now()) @map("last_activity_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model PaymentMethod {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @map("user_id")
+  provider             String
+  accountId            String?  @map("account_id")
+  apiKeyEncrypted      String?  @map("api_key_encrypted")
+  webhookSecretEncrypted String? @map("webhook_secret_encrypted")
+  isActive             Boolean  @default(true) @map("is_active")
+  isVerified           Boolean  @default(false) @map("is_verified")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+model DonationGoal {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  title         String
+  description   String?
+  targetAmount  Decimal   @map("target_amount") @db.Decimal(10, 2)
+  currentAmount Decimal   @default(0) @map("current_amount") @db.Decimal(10, 2)
+  currency      String    @default("USD")
+  isActive      Boolean   @default(true) @map("is_active")
+  isCompleted   Boolean   @default(false) @map("is_completed")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("donation_goals")
+}
+
+model BannedContent {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  contentType String   @map("content_type")
+  value       String
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentType, value])
+  @@index([userId])
+  @@map("banned_content")
+}
+
+model SocialLink {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  platform     String
+  url          String
+  isVerified   Boolean  @default(false) @map("is_verified")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([userId])
+  @@map("social_links")
+}
+
+model UserStatistic {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @map("user_id")
+  totalDonations     Decimal  @default(0) @map("total_donations") @db.Decimal(10, 2)
+  totalDonors        Int      @default(0) @map("total_donors")
+  totalTrackRequests Int      @default(0) @map("total_track_requests")
+  averageDonation    Decimal  @default(0) @map("average_donation") @db.Decimal(10, 2)
+  highestDonation    Decimal  @default(0) @map("highest_donation") @db.Decimal(10, 2)
+  date               DateTime @default(now()) @db.Date
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("user_statistics")
+}

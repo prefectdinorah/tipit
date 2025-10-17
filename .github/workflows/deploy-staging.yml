@@ -1,0 +1,72 @@
+name: Deploy to Staging
+
+# 🎯 Цель: Автоматический деплой на staging при пуше в dev
+# Триггер: Push в ветку dev
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch: # Ручной запуск из GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to Staging Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Получаем код из репозитория
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Деплоим на сервер через SSH
+      - name: 🚀 Deploy to Staging
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            set -e  # Останавливаемся при ошибке
+            
+            echo "📂 Navigating to DEV directory..."
+            cd /root/tipit/dev
+            
+            echo "📥 Pulling latest changes from dev..."
+            git fetch origin
+            git reset --hard origin/dev
+            
+            echo "📦 Installing dependencies..."
+            npm install
+            
+            echo "🔨 Generating Prisma Client..."
+            npm run prisma:generate
+            
+            echo "🗄️  Running database migrations..."
+            npm run prisma:migrate
+            
+            echo "🏗️  Building Next.js application..."
+            npm run build
+            
+            echo "♻️  Restarting PM2 process..."
+            pm2 restart tipit-dev || pm2 start npm --name "tipit-dev" -- start -- -p 3001
+            
+            echo "💾 Saving PM2 configuration..."
+            pm2 save
+            
+            echo "✅ Staging deployment completed!"
+            pm2 status tipit-dev
+
+      # 3. Уведомление об успешном деплое
+      - name: ✅ Deployment Success
+        if: success()
+        run: |
+          echo "🎉 Staging deployed successfully!"
+          echo "🌐 URL: https://dev.tipit.yourdomain.com"
+
+      # 4. Уведомление об ошибке
+      - name: ❌ Deployment Failed
+        if: failure()
+        run: |
+          echo "💥 Staging deployment failed!"
+          echo "Check logs: https://github.com/${{ github.repository }}/actions"

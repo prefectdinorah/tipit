@@ -1,0 +1,72 @@
+name: Deploy to IFT
+
+# 🎯 Цель: Автоматический деплой на IFT (тестовое окружение) при пуше в master
+# Триггер: Push в ветку master
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch: # Ручной запуск из GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to IFT (Testing Environment)
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Получаем код из репозитория
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Деплоим на сервер через SSH
+      - name: 🚀 Deploy to IFT
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            set -e  # Останавливаемся при ошибке
+            
+            echo "📂 Navigating to IFT (Testing) directory..."
+            cd /root/tipit/ift
+            
+            echo "📥 Pulling latest changes from master..."
+            git fetch origin
+            git reset --hard origin/master
+            
+            echo "📦 Installing dependencies..."
+            npm install --production
+            
+            echo "🔨 Generating Prisma Client..."
+            npm run prisma:generate
+            
+            echo "🗄️  Running database migrations..."
+            npm run prisma:migrate
+            
+            echo "🏗️  Building Next.js application..."
+            npm run build
+            
+            echo "♻️  Restarting PM2 process..."
+            pm2 restart tipit-ift || pm2 start npm --name "tipit-ift" -- start -- -p 3000
+            
+            echo "💾 Saving PM2 configuration..."
+            pm2 save
+            
+            echo "✅ IFT deployment completed successfully!"
+            pm2 status tipit-ift
+
+      # 3. Уведомление об успешном деплое
+      - name: ✅ Deployment Success
+        if: success()
+        run: |
+          echo "🎉 IFT (Testing) deployed successfully!"
+          echo "🌐 URL: http://45.144.52.219:3000"
+
+      # 4. Уведомление об ошибке
+      - name: ❌ Deployment Failed
+        if: failure()
+        run: |
+          echo "💥 IFT deployment failed!"
+          echo "Check logs: https://github.com/${{ github.repository }}/actions"
