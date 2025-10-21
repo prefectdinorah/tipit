@@ -16,9 +16,20 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# documentation (keep only essentials)
+CICD-FILES-OVERVIEW.md
+CICD-FINAL-CHECKLIST.md
+COMMANDS.md
+DEPLOYMENT.md
+README-CHANGES.md
+
 # env files
 .env*
 !.env.example
+
+# nginx configs (server-specific)
+nginx/*.conf
+
 
 # vercel
 .vercel

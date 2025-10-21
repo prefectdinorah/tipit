@@ -1,518 +1,843 @@
-# 🚀 Быстрый старт: Настройка CI/CD для TIPIT
+# 🚀 CI/CD Setup Guide для TIPIT# 🚀 CI/CD Setup Guide для TIPIT
 
-## 📋 Что получится в результате
 
-После выполнения всех шагов у вас будет:
-- ✅ Автоматический деплой при push в dev → staging (порт 3001)
-- ✅ Автоматический деплой при push в master → IFT (порт 3000)
-- ✅ Nginx проксирование для обоих окружений
-- ✅ PM2 управление процессами
-- ✅ Единая база данных для обоих окружений
 
----
+## ✅ Что уже сделано## ✅ Что уже сделано
 
-## 🔑 Шаг 0: Инициализация Git репозитория (5 минут)
 
-### 0.1 Настройте SSH ключ для GitHub (если ещё нет)
 
-**Windows PowerShell:**
-```powershell
-# Сгенерируйте SSH ключ для GitHub
-ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519_github
+- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`
 
-# Запустите ssh-agent
-Start-Service ssh-agent
+- ✅ Ветки `master` и `dev` созданы и запушены- ✅ Ветки `master` и `dev` созданы и запушены
 
-# Добавьте ключ в ssh-agent
-ssh-add ~/.ssh/id_ed25519_github
+- ✅ Nginx конфиги скопированы и активированы  - ✅ Nginx конфиги скопированы и активированы
 
-# Скопируйте публичный ключ
-Get-Content ~/.ssh/id_ed25519_github.pub | clip
-```
+- ✅ SSH ключ для GitHub настроен и прокинут- ✅ SSH ключ для GitHub настроен и прокинут
 
-**Linux/Mac:**
-```bash
-# Сгенерируйте SSH ключ для GitHub
-ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519_github
 
-# Запустите ssh-agent
-eval "$(ssh-agent -s)"
 
-# Добавьте ключ в ssh-agent
-ssh-add ~/.ssh/id_ed25519_github
+------
 
-# Скопируйте публичный ключ
-cat ~/.ssh/id_ed25519_github.pub
-```
 
-### 0.2 Добавьте SSH ключ в GitHub
 
-1. Перейдите: https://github.com/settings/keys
-2. Нажмите **"New SSH key"**
-3. Title: `Tipit Development`
-4. Key: *Вставьте скопированный публичный ключ*
-5. Нажмите **"Add SSH key"**
+## 📋 Что нужно сделать## 📋 Что получится в результате
 
-### 0.3 Проверьте подключение к GitHub
 
-```bash
-ssh -T git@github.com
-# Должно вывести: Hi prefectdinorah! You've successfully authenticated...
-```
 
-### 0.4 Инициализируйте Git репозиторий
+1. ✅ Исправить зависимости (vaul для React 19)После выполнения оставшихся шагов:
 
-```bash
+2. Настроить .env файлы на сервере- ✅ Автоматический деплой при push в dev → staging (порт 3001)
+
+3. Установить зависимости с `--legacy-peer-deps`- ✅ Автоматический деплой при push в master → IFT (порт 3000)
+
+4. Собрать приложения- ✅ PM2 управление процессами
+
+5. Запустить через PM2- ✅ Единая база данных для обоих окружений
+
+6. Настроить GitHub Secrets
+
+7. Протестировать автодеплой---
+
+
+
+---## � Шаг 1: Исправление зависимостей (3 минуты)
+
+
+
+## 🔧 Шаг 1: Обновление кода (2 минуты)### 1.1 На локальной машине обновите package.json
+
+
+
+### На локальной машине:Я уже обновил `vaul` до версии 1.1.1 (совместима с React 19).
+
+
+
+```bash**Закоммитьте изменения:**
+
+cd c:\dev\tipit\tipit```bash
+
 cd c:\dev\tipit\tipit
 
-# Инициализируйте Git (если ещё не инициализирован)
-git init
+# Закоммитьте обновления (vaul 1.1.1 + .gitignore)git add package.json .gitignore
 
-# Настройте пользователя
-git config user.name "Your Name"
-git config user.email "your_email@example.com"
+git add package.json .gitignoregit commit -m "fix: update vaul to 1.1.1 for React 19 compatibility, update .gitignore"
 
-# Добавьте все файлы
-git add .
+git commit -m "fix: update vaul to 1.1.1 for React 19, update .gitignore"git push origin dev
 
-# Первый коммит
-git commit -m "Initial commit: TIPIT donation platform with CI/CD"
+git push origin master
 
-# Переименуйте ветку в master (если нужно)
-git branch -M master
+# Запушьте в обе ветки```
 
-# Добавьте удалённый репозиторий
-git remote add origin git@github.com:prefectdinorah/tipit.git
+git checkout dev
 
-# Запушьте master ветку
-git push -u origin master
+git push origin dev### 1.2 На сервере обновите код
+
+
+
+git checkout master  ```bash
+
+git merge devssh root@45.144.52.219
+
+git push origin master
+
+```# DEV окружение
+
+cd /root/tipit/dev
+
+### На сервере обновите код:git pull origin dev
+
+
+
+```bash# IFT окружение
+
+ssh root@45.144.52.219cd /root/tipit/ift
+
+git pull origin master
+
+# DEV```
+
+cd /root/tipit/dev
+
+git pull origin dev---
+
+
+
+# IFT## 🎯 Шаг 2: Установка и настройка на сервере (10 минут)
+
+cd /root/tipit/ift```bash
+
+git pull origin mastercd /root/tipit/dev
+
+```nano .env
+
 ```
-
-### 0.5 Создайте dev ветку
-
-```bash
-# Создайте и переключитесь на dev ветку
-git checkout -b dev
-
-# Запушьте dev ветку
-git push -u origin dev
-
-# Вернитесь на master
-git checkout master
-```
-
-**✅ Готово!** Теперь у вас есть две ветки: `master` и `dev` в GitHub
 
 ---
 
-## 🎯 Шаг 1: Подготовка сервера (10 минут)
-
-### 1.1 Подключитесь к серверу
-```bash
-ssh root@45.144.52.219
-```
-
-### 1.2 Создайте структуру папок
-```bash
-mkdir -p /root/tipit/dev
-mkdir -p /root/tipit/ift
-```
-
-### 1.3 Настройте SSH для GitHub на сервере
-
-```bash
-# Сгенерируйте SSH ключ на сервере
-ssh-keygen -t ed25519 -C "server-github" -f ~/.ssh/id_ed25519_github_server
-
-# Покажите публичный ключ
-cat ~/.ssh/id_ed25519_github_server.pub
-
-# Скопируйте его и добавьте в GitHub:
-# https://github.com/settings/keys → New SSH key
-```
-
-**Добавьте ключ в ssh-agent:**
-```bash
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_ed25519_github_server
-
-# Проверьте подключение
-ssh -T git@github.com
-# Должно вывести: Hi prefectdinorah! You've successfully authenticated...
-```
-
-### 1.4 Клонируйте репозиторий для DEV
-```bash
-cd /root/tipit/dev
-git clone -b dev git@github.com:prefectdinorah/tipit.git .
-```
-
-### 1.5 Клонируйте репозиторий для IFT (тестовое окружение)
-```bash
-cd /root/tipit/ift
-git clone -b master git@github.com:prefectdinorah/tipit.git .
-```
-
-### 1.6 Настройте .env для DEV
-```bash
-cd /root/tipit/dev
-nano .env
-```
-
 Вставьте (замените данные на свои):
-```env
+
+## 🎯 Шаг 2: Настройка .env файлов (5 минут)```env
+
 # Общая БД для обоих окружений (пока)
-DATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
+
+### 2.1 DEV окружениеDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
+
 MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
 
-# Уникальный секрет для dev
-SESSION_SECRET="dev-secret-change-me-use-openssl-rand"
+```bash
+
+cd /root/tipit/dev# Уникальный секрет для dev
+
+nano .envSESSION_SECRET="dev-secret-change-me-use-openssl-rand"
+
+```
 
 # Настройки окружения
-NODE_ENV=development
+
+**Вставьте (замените на свои данные):**NODE_ENV=development
+
 PORT=3001
-NEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
-```
+
+```envNEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+
+# База данных PostgreSQL (общая для dev и ift)```
+
+DATABASE_URL="postgresql://tipit_user:your_password@45.144.52.58:5432/tipit?schema=public"
 
 ### 1.7 Настройте .env для IFT (тестовое окружение)
-```bash
-cd /root/tipit/ift
+
+# MongoDB (общая для dev и ift)```bash
+
+MONGODB_URI="mongodb://tipit_user:your_password@45.144.52.58:27017/tipit"cd /root/tipit/ift
+
 nano .env
-```
 
-Вставьте (замените данные на свои):
+# NextAuth (уникальный секрет для DEV!)```
+
+NEXTAUTH_URL="http://45.144.52.219:3001"
+
+NEXTAUTH_SECRET="dev_secret_change_me_use_openssl_rand_base64_32"Вставьте (замените данные на свои):
+
 ```env
-# Общая БД для обоих окружений (пока)
-DATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
-MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
 
-# Уникальный секрет для IFT
+# App# Общая БД для обоих окружений (пока)
+
+NODE_ENV=developmentDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
+
+PORT=3001MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
+
+NEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+
+```# Уникальный секрет для IFT
+
 SESSION_SECRET="ift-secret-change-me-use-openssl-rand"
 
-# Настройки окружения
-NODE_ENV=production
-PORT=3000
+**💡 Сгенерируйте безопасный секрет:**
+
+```bash# Настройки окружения
+
+openssl rand -base64 32NODE_ENV=production
+
+```PORT=3000
+
 NEXT_PUBLIC_APP_URL="http://45.144.52.219"
-```
 
-**💡 Совет:** Сгенерируйте безопасные секреты:
-```bash
-openssl rand -base64 32
-```
+### 2.2 IFT окружение```
 
-### 1.8 Установите и соберите DEV
+
+
+```bash**💡 Совет:** Сгенерируйте безопасные секреты:
+
+cd /root/tipit/ift```bash
+
+nano .envopenssl rand -base64 32
+
+``````
+
+
+
+**Вставьте (замените на свои данные):**### 1.8 Установите и соберите DEV
+
 ```bash
-cd /root/tipit/dev
-npm install
-npm run prisma:generate
+
+```envcd /root/tipit/dev
+
+# База данных PostgreSQL (общая для dev и ift)npm install
+
+DATABASE_URL="postgresql://tipit_user:your_password@45.144.52.58:5432/tipit?schema=public"npm run prisma:generate
+
 npm run prisma:migrate
-npm run build
-```
 
-### 1.9 Установите и соберите IFT
-```bash
-cd /root/tipit/ift
+# MongoDB (общая для dev и ift)npm run build
+
+MONGODB_URI="mongodb://tipit_user:your_password@45.144.52.58:27017/tipit"```
+
+
+
+# NextAuth (уникальный секрет для IFT!)### 1.9 Установите и соберите IFT
+
+NEXTAUTH_URL="http://45.144.52.219:3000"```bash
+
+NEXTAUTH_SECRET="ift_secret_different_from_dev_openssl_rand"cd /root/tipit/ift
+
 npm install
-npm run prisma:generate
-# НЕ запускаем migrate здесь - БД уже мигрирована в DEV
-npm run build
+
+# Appnpm run prisma:generate
+
+NODE_ENV=production# НЕ запускаем migrate здесь - БД уже мигрирована в DEV
+
+PORT=3000npm run build
+
+NEXT_PUBLIC_APP_URL="http://45.144.52.219:3000"```
+
 ```
 
 ### 1.10 Настройте Nginx
 
-**Скопируйте конфиги:**
-```bash
-sudo cp /root/tipit/dev/nginx/tipit-staging.conf /etc/nginx/sites-available/
-sudo cp /root/tipit/ift/nginx/tipit-production.conf /etc/nginx/sites-available/
-```
-
-**Активируйте конфиги:**
-```bash
-sudo ln -s /etc/nginx/sites-available/tipit-staging.conf /etc/nginx/sites-enabled/
-sudo ln -s /etc/nginx/sites-available/tipit-production.conf /etc/nginx/sites-enabled/
-```
-
-**Проверьте и перезапустите:**
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-### 1.11 Запустите через PM2
-```bash
-# DEV окружение
-cd /root/tipit/dev
-pm2 start npm --name "tipit-dev" -- start -- -p 3001
-
-# IFT окружение (тестовое)
-cd /root/tipit/ift
-pm2 start npm --name "tipit-ift" -- start -- -p 3000
-
-# Сохраните конфигурацию PM2
-pm2 save
-
-# Настройте автозапуск при перезагрузке сервера
-pm2 startup
-# Выполните команду, которую выдаст PM2 (скопируйте и запустите)
-```
-
 ---
 
-## 🔐 Шаг 2: Настройка GitHub Secrets (5 минут)
+**Скопируйте конфиги:**
 
-### 2.1 Сгенерируйте SSH ключ (на локальном компьютере)
+## 📦 Шаг 3: Установка и сборка (10 минут)```bash
 
-**Windows PowerShell:**
-```powershell
-ssh-keygen -t ed25519 -C "github-actions-tipit" -f ~/.ssh/tipit_deploy
+sudo cp /root/tipit/dev/nginx/tipit-staging.conf /etc/nginx/sites-available/
+
+### 3.1 DEV окружениеsudo cp /root/tipit/ift/nginx/tipit-production.conf /etc/nginx/sites-available/
+
+```
+
+```bash
+
+cd /root/tipit/dev**Активируйте конфиги:**
+
+```bash
+
+# Установка с --legacy-peer-deps (из-за React 19)sudo ln -s /etc/nginx/sites-available/tipit-staging.conf /etc/nginx/sites-enabled/
+
+npm install --legacy-peer-depssudo ln -s /etc/nginx/sites-available/tipit-production.conf /etc/nginx/sites-enabled/
+
+```
+
+# Генерация Prisma Client
+
+npm run prisma:generate**Проверьте и перезапустите:**
+
+```bash
+
+# Применение миграций БДsudo nginx -t
+
+npm run prisma:migratesudo systemctl reload nginx
+
+```
+
+# Сборка приложения
+
+npm run build### 1.11 Запустите через PM2
+
+``````bash
+
+# DEV окружение
+
+### 3.2 IFT окружениеcd /root/tipit/dev
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001
+
+```bash
+
+cd /root/tipit/ift# IFT окружение (тестовое)
+
+cd /root/tipit/ift
+
+# Установкаpm2 start npm --name "tipit-ift" -- start -- -p 3000
+
+npm install --legacy-peer-deps
+
+# Сохраните конфигурацию PM2
+
+# Генерация Prisma Clientpm2 save
+
+npm run prisma:generate
+
+# Настройте автозапуск при перезагрузке сервера
+
+# НЕ запускаем migrate (БД уже мигрирована в DEV!)pm2 startup
+
+# Выполните команду, которую выдаст PM2 (скопируйте и запустите)
+
+# Сборка приложения```
+
+npm run build
+
+```---
+
+
+
+---## 🔐 Шаг 2: Настройка GitHub Secrets (5 минут)
+
+
+
+## 🚀 Шаг 4: Запуск через PM2 (3 минуты)### 2.1 Сгенерируйте SSH ключ (на локальном компьютере)
+
+
+
+```bash**Windows PowerShell:**
+
+# DEV окружение (порт 3001)```powershell
+
+cd /root/tipit/devssh-keygen -t ed25519 -C "github-actions-tipit" -f ~/.ssh/tipit_deploy
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001
 
 # Скопируйте приватный ключ
-Get-Content ~/.ssh/tipit_deploy | clip
 
-# Покажите публичный ключ
+# IFT окружение (порт 3000)Get-Content ~/.ssh/tipit_deploy | clip
+
+cd /root/tipit/ift
+
+pm2 start npm --name "tipit-ift" -- start -- -p 3000# Покажите публичный ключ
+
 Get-Content ~/.ssh/tipit_deploy.pub
-```
+
+# Сохранить конфигурацию```
+
+pm2 save
 
 **Linux/Mac:**
-```bash
-ssh-keygen -t ed25519 -C "github-actions-tipit" -f ~/.ssh/tipit_deploy
 
-# Скопируйте приватный ключ
+# Настроить автозапуск```bash
+
+pm2 startupssh-keygen -t ed25519 -C "github-actions-tipit" -f ~/.ssh/tipit_deploy
+
+# Выполните команду, которую выдаст PM2
+
+```# Скопируйте приватный ключ
+
 cat ~/.ssh/tipit_deploy
 
-# Покажите публичный ключ
-cat ~/.ssh/tipit_deploy.pub
-```
+### Проверка:
 
-### 2.2 Добавьте публичный ключ на сервер
-```bash
-# На сервере 45.144.52.219
-echo "ssh-ed25519 AAAA... github-actions-tipit" >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-```
+# Покажите публичный ключ
+
+```bashcat ~/.ssh/tipit_deploy.pub
+
+pm2 status```
+
+
+
+# Должно показать:### 2.2 Добавьте публичный ключ на сервер
+
+# ┌─────┬──────────┬─────────┬─────────┐```bash
+
+# │ id  │ name     │ status  │ cpu     │# На сервере 45.144.52.219
+
+# ├─────┼──────────┼─────────┼─────────┤echo "ssh-ed25519 AAAA... github-actions-tipit" >> ~/.ssh/authorized_keys
+
+# │ 0   │ tipit-dev│ online  │ 0%      │chmod 600 ~/.ssh/authorized_keys
+
+# │ 1   │ tipit-ift│ online  │ 0%      │```
+
+# └─────┴──────────┴─────────┴─────────┘
 
 ### 2.3 Проверьте SSH подключение
-```bash
-# С локального компьютера
-ssh -i ~/.ssh/tipit_deploy root@45.144.52.219
-# Должно подключиться без пароля!
+
+# Проверьте логи```bash
+
+pm2 logs tipit-dev --lines 20# С локального компьютера
+
+pm2 logs tipit-ift --lines 20ssh -i ~/.ssh/tipit_deploy root@45.144.52.219
+
+```# Должно подключиться без пароля!
+
 ```
+
+### Тест в браузере:
 
 ### 2.4 Добавьте Secrets в GitHub
 
-Перейдите: `https://github.com/prefectdinorah/tipit/settings/secrets/actions`
+- **DEV:** http://45.144.52.219:3001
+
+- **IFT:** http://45.144.52.219:3000Перейдите: `https://github.com/prefectdinorah/tipit/settings/secrets/actions`
+
+
+
+---Нажмите **"New repository secret"** и добавьте:
+
+
+
+## 🔐 Шаг 5: Настройка GitHub Secrets (5 минут)| Name | Value |
+
+|------|-------|
+
+### 5.1 Создайте SSH ключ для деплоя (на локальной машине)| `SERVER_HOST` | `45.144.52.219` |
+
+| `SERVER_USER` | `root` |
+
+**Windows PowerShell:**| `SERVER_SSH_KEY` | *Весь приватный ключ из ~/.ssh/tipit_deploy* |
+
+```powershell
+
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/tipit_deploy**⚠️ Важно:** `SERVER_SSH_KEY` должен включать строки:
+
+```
+
+# Покажите публичный ключ-----BEGIN OPENSSH PRIVATE KEY-----
+
+Get-Content ~/.ssh/tipit_deploy.pub...весь ключ...
+
+-----END OPENSSH PRIVATE KEY-----
+
+# Скопируйте приватный ключ```
+
+Get-Content ~/.ssh/tipit_deploy | clip
+
+```---
+
+
+
+**Linux/Mac:**## 🚀 Шаг 3: Первый деплой (3 минуты)
+
+```bash
+
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/tipit_deploy### Тест staging (DEV):
+
+```bash
+
+# Покажите публичный ключgit checkout dev
+
+cat ~/.ssh/tipit_deploy.pub
+
+# Сделайте тестовое изменение
+
+# Скопируйте приватный ключecho "# CI/CD Test - Staging" >> README.md
+
+cat ~/.ssh/tipit_deploygit add .
+
+```git commit -m "test: staging deploy"
+
+git push origin dev
+
+### 5.2 Добавьте публичный ключ на сервер```
+
+
+
+```bash**Следите за деплоем:**
+
+# На сервере 45.144.52.219- Перейдите: `https://github.com/prefectdinorah/tipit/actions`
+
+echo "ssh-ed25519 AAAA... github-actions" >> ~/.ssh/authorized_keys- Откройте workflow: `Deploy to Staging`
+
+chmod 600 ~/.ssh/authorized_keys- Наблюдайте за логами выполнения
+
+```
+
+### Тест IFT (тестовое окружение):
+
+### 5.3 Проверьте SSH подключение```bash
+
+git checkout master
+
+```bash
+
+# С локальной машины# Смержите изменения из dev
+
+ssh -i ~/.ssh/tipit_deploy root@45.144.52.219git merge dev
+
+# Должно подключиться без пароля!
+
+```# Сделайте тестовое изменение для IFT
+
+echo "# CI/CD Test - IFT" >> README.md
+
+### 5.4 Добавьте Secrets в GitHubgit add .
+
+git commit -m "test: IFT deploy"
+
+**Идите на:** https://github.com/prefectdinorah/tipit/settings/secrets/actionsgit push origin master
+
+```
 
 Нажмите **"New repository secret"** и добавьте:
 
-| Name | Value |
-|------|-------|
+**Следите за деплоем:**
+
+| Name | Value |- Откройте workflow: `Deploy to IFT`
+
+|------|-------|- Проверьте что деплой прошёл успешно
+
 | `SERVER_HOST` | `45.144.52.219` |
-| `SERVER_USER` | `root` |
+
+| `SERVER_USER` | `root` |---
+
 | `SERVER_SSH_KEY` | *Весь приватный ключ из ~/.ssh/tipit_deploy* |
-
-**⚠️ Важно:** `SERVER_SSH_KEY` должен включать строки:
-```
------BEGIN OPENSSH PRIVATE KEY-----
-...весь ключ...
------END OPENSSH PRIVATE KEY-----
-```
-
----
-
-## 🚀 Шаг 3: Первый деплой (3 минуты)
-
-### Тест staging (DEV):
-```bash
-git checkout dev
-
-# Сделайте тестовое изменение
-echo "# CI/CD Test - Staging" >> README.md
-git add .
-git commit -m "test: staging deploy"
-git push origin dev
-```
-
-**Следите за деплоем:**
-- Перейдите: `https://github.com/prefectdinorah/tipit/actions`
-- Откройте workflow: `Deploy to Staging`
-- Наблюдайте за логами выполнения
-
-### Тест IFT (тестовое окружение):
-```bash
-git checkout master
-
-# Смержите изменения из dev
-git merge dev
-
-# Сделайте тестовое изменение для IFT
-echo "# CI/CD Test - IFT" >> README.md
-git add .
-git commit -m "test: IFT deploy"
-git push origin master
-```
-
-**Следите за деплоем:**
-- Откройте workflow: `Deploy to IFT`
-- Проверьте что деплой прошёл успешно
-
----
 
 ## ✅ Шаг 4: Проверка работы (2 минуты)
 
-### На сервере:
-```bash
-ssh root@45.144.52.219
-pm2 status
+**⚠️ Важно:** `SERVER_SSH_KEY` должен содержать полный ключ:
+
+```### На сервере:
+
+-----BEGIN OPENSSH PRIVATE KEY-----```bash
+
+...весь ключ...ssh root@45.144.52.219
+
+-----END OPENSSH PRIVATE KEY-----pm2 status
+
+```
 
 # Должно показать:
-# ┌─────┬──────────┬─────────┬─────────┬──────────┐
+
+---# ┌─────┬──────────┬─────────┬─────────┬──────────┐
+
 # │ id  │ name     │ status  │ cpu     │ memory   │
-# ├─────┼──────────┼─────────┼─────────┼──────────┤
+
+## 🧪 Шаг 6: Тестирование автодеплоя (5 минут)# ├─────┼──────────┼─────────┼─────────┼──────────┤
+
 # │ 0   │ tipit-dev│ online  │ 0%      │ 150MB    │
-# │ 1   │ tipit-ift│ online  │ 0%      │ 150MB    │
+
+### Тест DEV (staging):# │ 1   │ tipit-ift│ online  │ 0%      │ 150MB    │
+
 # └─────┴──────────┴─────────┴─────────┴──────────┘
-```
 
-### В браузере:
-- **DEV (Staging):** http://45.144.52.219:3001
-- **IFT (Testing):** http://45.144.52.219:3000
+```bash```
 
-### Проверьте логи:
-```bash
-# Логи DEV окружения
-pm2 logs tipit-dev --lines 20
-
-# Логи IFT окружения
-pm2 logs tipit-ift --lines 20
-
-# Nginx логи
-sudo tail -f /var/log/nginx/tipit-staging-access.log
-sudo tail -f /var/log/nginx/tipit-production-access.log
-```
-
----
-
-## 🔄 Ежедневная работа
-
-### Типичный workflow разработки:
-
-```bash
-# 1. Работаете в dev ветке
 git checkout dev
 
-# 2. Пишете код, делаете изменения
+### В браузере:
+
+# Тестовое изменение- **DEV (Staging):** http://45.144.52.219:3001
+
+echo "# CI/CD Test - DEV" >> README.md- **IFT (Testing):** http://45.144.52.219:3000
+
+git add README.md
+
+git commit -m "test: DEV deployment"### Проверьте логи:
+
+git push origin dev```bash
+
+```# Логи DEV окружения
+
+pm2 logs tipit-dev --lines 20
+
+**Следите за деплоем:**
+
+- https://github.com/prefectdinorah/tipit/actions# Логи IFT окружения
+
+- Откройте workflow: "Deploy to Staging"pm2 logs tipit-ift --lines 20
+
+- Проверьте логи выполнения
+
+# Nginx логи
+
+### Тест IFT:sudo tail -f /var/log/nginx/tipit-staging-access.log
+
+sudo tail -f /var/log/nginx/tipit-production-access.log
+
+```bash```
+
+git checkout master
+
+git merge dev---
+
+git push origin master
+
+```## 🔄 Ежедневная работа
+
+
+
+**Проверьте:**### Типичный workflow разработки:
+
+- https://github.com/prefectdinorah/tipit/actions
+
+- Workflow: "Deploy to IFT"```bash
+
+# 1. Работаете в dev ветке
+
+---git checkout dev
+
+
+
+## ✅ Финальная проверка# 2. Пишете код, делаете изменения
+
 # ...
 
+### На сервере:
+
 # 3. Коммитите и пушите
-git add .
-git commit -m "feat: добавил новую фичу"
-git push origin dev
+
+```bashgit add .
+
+# Статус PM2git commit -m "feat: добавил новую фичу"
+
+pm2 statusgit push origin dev
+
 # 🎉 Автоматический деплой на DEV (staging) - порт 3001!
 
-# 4. Тестируете на staging окружении
-# Откройте: http://45.144.52.219:3001
+# Логи
+
+pm2 logs tipit-dev --lines 20# 4. Тестируете на staging окружении
+
+pm2 logs tipit-ift --lines 20# Откройте: http://45.144.52.219:3001
+
 # Проверьте что всё работает правильно
 
-# 5. Всё работает отлично? Деплоим в IFT
-git checkout master
+# Nginx
+
+sudo systemctl status nginx# 5. Всё работает отлично? Деплоим в IFT
+
+```git checkout master
+
 git merge dev
-git push origin master
+
+### В браузере:git push origin master
+
 # 🎉 Автоматический деплой на IFT (testing) - порт 3000!
 
-# 6. Финальное тестирование на IFT
+- ✅ DEV: http://45.144.52.219:3001
+
+- ✅ IFT: http://45.144.52.219:3000# 6. Финальное тестирование на IFT
+
 # Откройте: http://45.144.52.219:3000
-# Проверьте в боевом окружении
+
+---# Проверьте в боевом окружении
+
 ```
+
+## 🔄 Ежедневная работа
 
 ### Откат изменений (если что-то пошло не так):
 
 ```bash
-# Откатить последний коммит (локально)
+
+# 1. Работаете в dev ветке```bash
+
+git checkout dev# Откатить последний коммит (локально)
+
 git revert HEAD
-git push origin dev
 
-# Или принудительно откатить на предыдущую версию
-git reset --hard HEAD~1
-git push origin dev --force  # Осторожно!
+# 2. Делаете изменения, коммититеgit push origin dev
+
+git add .
+
+git commit -m "feat: новая фича"# Или принудительно откатить на предыдущую версию
+
+git push origin devgit reset --hard HEAD~1
+
+# → Автодеплой на DEV (3001)!git push origin dev --force  # Осторожно!
+
 ```
 
----
+# 3. Тестируете на staging
 
-## 🐛 Быстрое решение проблем
+# http://45.144.52.219:3001---
 
-### Деплой не запустился?
-1. Проверьте GitHub Secrets
-2. Проверьте что SSH ключ работает
-3. Посмотрите логи в GitHub Actions
 
-### PM2 процесс упал?
+
+# 4. Всё ОК? Деплоим в IFT## 🐛 Быстрое решение проблем
+
+git checkout master
+
+git merge dev### Деплой не запустился?
+
+git push origin master1. Проверьте GitHub Secrets
+
+# → Автодеплой на IFT (3000)!2. Проверьте что SSH ключ работает
+
+```3. Посмотрите логи в GitHub Actions
+
+
+
+---### PM2 процесс упал?
+
 ```bash
-# Перезапустить конкретное окружение
+
+## 🐛 Troubleshooting# Перезапустить конкретное окружение
+
 pm2 restart tipit-dev
-pm2 restart tipit-ift
 
-# Посмотреть ошибки
-pm2 logs tipit-dev --err
-pm2 logs tipit-ift --err
-```
+### npm install падает с ошибкой зависимостей?pm2 restart tipit-ift
 
-### Nginx 502?
+
+
+```bash# Посмотреть ошибки
+
+# Используйте --legacy-peer-depspm2 logs tipit-dev --err
+
+npm install --legacy-peer-depspm2 logs tipit-ift --err
+
+``````
+
+
+
+### PM2 процесс не запускается?### Nginx 502?
+
 ```bash
-pm2 status
-sudo systemctl status nginx
-sudo tail -f /var/log/nginx/error.log
+
+```bashpm2 status
+
+# Проверьте логиsudo systemctl status nginx
+
+pm2 logs tipit-dev --err --lines 50sudo tail -f /var/log/nginx/error.log
+
 ```
 
----
+# Проверьте .env
 
-## 📚 Полезные ссылки
+cat /root/tipit/dev/.env---
 
-- 📖 Полная инструкция: `CICD-README.md`
-- 🔐 Настройка Secrets: `.github/SECRETS-SETUP.md`
-- ⚡ Шпаргалка команд: `QUICK-COMMANDS.md`
-- 🚀 Детальный гайд: `CICD-SETUP.md`
 
----
 
-## ✅ Финальный чеклист
+# Пересоздайте процесс## 📚 Полезные ссылки
 
-### Локально:
+pm2 delete tipit-dev
+
+cd /root/tipit/dev- 📖 Полная инструкция: `CICD-README.md`
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001- 🔐 Настройка Secrets: `.github/SECRETS-SETUP.md`
+
+pm2 save- ⚡ Шпаргалка команд: `QUICK-COMMANDS.md`
+
+```- 🚀 Детальный гайд: `CICD-SETUP.md`
+
+
+
+### Nginx 502 Bad Gateway?---
+
+
+
+```bash## ✅ Финальный чеклист
+
+# Проверьте PM2
+
+pm2 status  # Должны быть online### Локально:
+
 - [ ] SSH ключ для GitHub создан и добавлен
-- [ ] Git репозиторий инициализирован
-- [ ] Ветка master запушена в GitHub
-- [ ] Ветка dev создана и запушена
+
+# Проверьте порты- [ ] Git репозиторий инициализирован
+
+netstat -tulpn | grep :3001- [ ] Ветка master запушена в GitHub
+
+netstat -tulpn | grep :3000- [ ] Ветка dev создана и запушена
+
 - [ ] Все CI/CD файлы закоммичены
 
-### На сервере:
-- [ ] Папки созданы (`/root/tipit/dev`, `/root/tipit/ift`)
+# Логи Nginx
+
+sudo tail -f /var/log/nginx/error.log### На сервере:
+
+```- [ ] Папки созданы (`/root/tipit/dev`, `/root/tipit/ift`)
+
 - [ ] SSH ключ для GitHub настроен на сервере
-- [ ] Репозитории склонированы из GitHub
+
+### База данных не подключается?- [ ] Репозитории склонированы из GitHub
+
 - [ ] `.env` файлы настроены (с общей БД)
-- [ ] Зависимости установлены (`npm install`)
-- [ ] Приложения собраны (`npm run build`)
-- [ ] Nginx конфиги скопированы и активированы
+
+```bash- [ ] Зависимости установлены (`npm install`)
+
+# Проверьте .env- [ ] Приложения собраны (`npm run build`)
+
+cat /root/tipit/dev/.env | grep DATABASE- [ ] Nginx конфиги скопированы и активированы
+
 - [ ] Nginx перезапущен без ошибок
-- [ ] PM2 процессы запущены (`tipit-dev`, `tipit-ift`)
-- [ ] PM2 автозапуск настроен (`pm2 startup`)
 
-### В GitHub:
+# Проверьте доступ с сервера app к серверу БД- [ ] PM2 процессы запущены (`tipit-dev`, `tipit-ift`)
+
+psql -h 45.144.52.58 -U tipit_user -d tipit- [ ] PM2 автозапуск настроен (`pm2 startup`)
+
+mongosh mongodb://tipit_user:pass@45.144.52.58:27017/tipit
+
+```### В GitHub:
+
 - [ ] Repository: `git@github.com:prefectdinorah/tipit.git`
-- [ ] Ветки: `master` и `dev` существуют
-- [ ] GitHub Secrets добавлены (SERVER_HOST, SERVER_USER, SERVER_SSH_KEY)
-- [ ] Workflows файлы в `.github/workflows/`
 
-### Проверка работы:
-- [ ] Тестовый деплой dev → staging прошёл успешно
-- [ ] Тестовый деплой master → IFT прошёл успешно
+---- [ ] Ветки: `master` и `dev` существуют
+
+- [ ] GitHub Secrets добавлены (SERVER_HOST, SERVER_USER, SERVER_SSH_KEY)
+
+## 📚 Дополнительно- [ ] Workflows файлы в `.github/workflows/`
+
+
+
+- 📖 Детальная инструкция: [CICD-README.md](./CICD-README.md)### Проверка работы:
+
+- ⚡ Шпаргалка команд: [QUICK-COMMANDS.md](./QUICK-COMMANDS.md)  - [ ] Тестовый деплой dev → staging прошёл успешно
+
+- 🔑 Первый push в GitHub: [GIT-FIRST-PUSH.md](./GIT-FIRST-PUSH.md)- [ ] Тестовый деплой master → IFT прошёл успешно
+
+- [ ] DEV доступен: http://45.144.52.219:3001
+
+---- [ ] IFT доступен: http://45.144.52.219:3000
+
+- [ ] PM2 показывает оба процесса online
+
+## ✅ Чеклист- [ ] Логи не содержат критических ошибок
+
+
+
+- [ ] package.json обновлён (vaul 1.1.1)**🎉 Поздравляем! CI/CD полностью настроен и работает!**
+
+- [ ] Код запушен в dev и master
+
+- [ ] .env файлы настроены на сервере**Теперь:**
+
+- [ ] npm install --legacy-peer-deps выполнен- Push в **dev** → автодеплой на staging (порт 3001)
+
+- [ ] npm run build выполнен- Push в **master** → автодеплой на IFT (порт 3000)
+
+- [ ] PM2 процессы запущены и online
+
+- [ ] GitHub Secrets добавлены (3 шт)**Больше никаких ручных действий на сервере!** 🚀
+
+- [ ] Тестовый деплой dev успешен
+- [ ] Тестовый деплой master успешен
 - [ ] DEV доступен: http://45.144.52.219:3001
 - [ ] IFT доступен: http://45.144.52.219:3000
-- [ ] PM2 показывает оба процесса online
-- [ ] Логи не содержат критических ошибок
 
-**🎉 Поздравляем! CI/CD полностью настроен и работает!**
+---
 
-**Теперь:**
-- Push в **dev** → автодеплой на staging (порт 3001)
-- Push в **master** → автодеплой на IFT (порт 3000)
+**🎉 Готово! CI/CD работает!**
 
-**Больше никаких ручных действий на сервере!** 🚀
+**Push в dev → автодеплой на 3001**  
+**Push в master → автодеплой на 3000**
+
+🚀
