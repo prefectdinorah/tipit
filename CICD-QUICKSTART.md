@@ -1,18 +1,460 @@
-# 🚀 CI/CD Setup Guide для TIPIT# 🚀 CI/CD Setup Guide для TIPIT
+# 🚀 Быстрый старт DEV окружения# 🚀 CI/CD Setup Guide для TIPIT# 🚀 CI/CD Setup Guide для TIPIT# 🚀 CI/CD Setup Guide для TIPIT
 
 
 
-## ✅ Что уже сделано## ✅ Что уже сделано
+## ✅ Что уже сделано
 
 
 
-- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`
+- ✅ Репозиторий: `git@github.com:prefectdinorah/tipit.git`## ✅ Что уже сделано
+
+- ✅ Ветки `master` и `dev` созданы
+
+- ✅ Nginx конфиги активированы
+
+- ✅ Код обновлён на сервере (git pull)
+
+- ✅ Dependencies установлены с `--legacy-peer-deps`- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`## ✅ Что уже сделано## ✅ Что уже сделано
+
+- ✅ Prisma Client сгенерирован
+
+- ✅ Next.js приложение собрано- ✅ Ветки `master` и `dev` созданы и запушены
+
+- ✅ PM2 процесс запущен на порту 3001
+
+- ✅ Nginx конфиги скопированы и активированы
+
+---
+
+- ✅ SSH ключ для GitHub настроен
+
+## 📊 Архитектура БД
+
+- ✅ Код обновлён на сервере DEV (git pull)- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`- ✅ Репозиторий создан: `git@github.com:prefectdinorah/tipit.git`
+
+**PostgreSQL** (Prisma):
+
+- Users, StreamerSettings, Sessions- ✅ package.json с vaul 1.1.1 (React 19 compatible)
+
+- PaymentMethods, DonationGoals, Statistics
 
 - ✅ Ветки `master` и `dev` созданы и запушены- ✅ Ветки `master` и `dev` созданы и запушены
 
-- ✅ Nginx конфиги скопированы и активированы  - ✅ Nginx конфиги скопированы и активированы
+**MongoDB** (Mongoose):
 
-- ✅ SSH ключ для GitHub настроен и прокинут- ✅ SSH ключ для GitHub настроен и прокинут
+- Donations (с сообщениями и треками)---
+
+
+
+---- ✅ Nginx конфиги скопированы и активированы  - ✅ Nginx конфиги скопированы и активированы
+
+
+
+## ⚙️ Настройка .env (DEV)## 📊 Архитектура БД
+
+
+
+Создайте файл `/root/tipit/dev/.env`:- ✅ SSH ключ для GitHub настроен и прокинут- ✅ SSH ключ для GitHub настроен и прокинут
+
+
+
+```env**PostgreSQL** (Prisma) - пользователи и настройки:
+
+# PostgreSQL база данных
+
+DATABASE_URL="postgresql://streamdonate_user:B5oFzj1O0DyAhNzWlfMWqW71@45.144.52.58:5432/streamdonate_db"- Users, StreamerSettings, Sessions
+
+
+
+# MongoDB база данных (БЕЗ mongosh префикса!)- PaymentMethods, DonationGoals
+
+MONGODB_URI="mongodb://streamdonate_mongo_user:d57b9iF62KFVRi8v1Nmx8Tv8@45.144.52.58:27017/tipit"
+
+- Statistics, SocialLinks------
+
+# Session secret (уникальный для DEV!)
+
+SESSION_SECRET="JeTJogeYKyTlj10wDVVAJf5sc8ReoKiJjpis2pzwvYc="
+
+
+
+# Настройки окружения**MongoDB** (Mongoose) - донаты:
+
+NODE_ENV=development
+
+PORT=3001- Donations (с сообщениями и треками)
+
+NEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+
+```## 📋 Что нужно сделать## 📋 Что получится в результате
+
+
+
+**⚠️ ВАЖНО:** `MONGODB_URI` должен начинаться с `mongodb://`, а НЕ с `mongosh`!---
+
+
+
+---
+
+
+
+## 🧪 Проверка подключений## 🧪 Шаг 1: Тестирование подключения к БД (5 минут)
+
+
+
+### PostgreSQL1. ✅ Исправить зависимости (vaul для React 19)После выполнения оставшихся шагов:
+
+
+
+```bash### PostgreSQL
+
+psql -h 45.144.52.58 -U streamdonate_user -d streamdonate_db
+
+# Пароль: B5oFzj1O0DyAhNzWlfMWqW71```bash2. Настроить .env файлы на сервере- ✅ Автоматический деплой при push в dev → staging (порт 3001)
+
+```
+
+# На сервере
+
+### MongoDB
+
+psql -h 45.144.52.58 -U tipit_user -d tipit3. Установить зависимости с `--legacy-peer-deps`- ✅ Автоматический деплой при push в master → IFT (порт 3000)
+
+```bash
+
+mongosh mongodb://streamdonate_mongo_user:d57b9iF62KFVRi8v1Nmx8Tv8@45.144.52.58:27017/tipit# Введите пароль
+
+```
+
+```4. Собрать приложения- ✅ PM2 управление процессами
+
+---
+
+
+
+## 📦 Установка и сборка (если нужно пересобрать)
+
+### MongoDB5. Запустить через PM2- ✅ Единая база данных для обоих окружений
+
+```bash
+
+cd /root/tipit/dev```bash
+
+
+
+# 1. Установка зависимостей# Тест с учётными данными: admin:prefectdinorah6. Настроить GitHub Secrets
+
+npm install --legacy-peer-deps
+
+mongosh mongodb://admin:prefectdinorah@45.144.52.58:27017/tipit
+
+# 2. Генерация Prisma Client
+
+npm run prisma:generate```7. Протестировать автодеплой---
+
+
+
+# 3. Применение миграций (только один раз!)
+
+npm run prisma:migrate
+
+**Если MongoDB не подключается:**
+
+# 4. Сборка приложения
+
+npm run build```bash
+
+```
+
+# Проверьте доступность порта---## � Шаг 1: Исправление зависимостей (3 минуты)
+
+---
+
+telnet 45.144.52.58 27017
+
+## 🚀 Управление PM2
+
+
+
+### Запуск процесса
+
+# На сервере БД проверьте:
+
+```bash
+
+cd /root/tipit/dev# 1. MongoDB запущен: sudo systemctl status mongod## 🔧 Шаг 1: Обновление кода (2 минуты)### 1.1 На локальной машине обновите package.json
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001
+
+pm2 save# 2. Слушает 0.0.0.0: cat /etc/mongod.conf | grep bindIp
+
+```
+
+# 3. Firewall: sudo ufw status
+
+### Перезапуск после изменений
+
+```
+
+```bash
+
+pm2 restart tipit-dev### На локальной машине:Я уже обновил `vaul` до версии 1.1.1 (совместима с React 19).
+
+```
+
+---
+
+### Просмотр логов
+
+
+
+```bash
+
+# Реальное время## ⚙️ Шаг 2: Настройка .env для DEV (3 минуты)
+
+pm2 logs tipit-dev
+
+```bash**Закоммитьте изменения:**
+
+# Последние 50 строк
+
+pm2 logs tipit-dev --lines 50```bash
+
+
+
+# Только ошибкиcd /root/tipit/devcd c:\dev\tipit\tipit```bash
+
+pm2 logs tipit-dev --err
+
+```nano .env
+
+
+
+### Статус процесса```cd c:\dev\tipit\tipit
+
+
+
+```bash
+
+pm2 status
+
+```**Вставьте:**# Закоммитьте обновления (vaul 1.1.1 + .gitignore)git add package.json .gitignore
+
+
+
+### Остановка процесса
+
+
+
+```bash```envgit add package.json .gitignoregit commit -m "fix: update vaul to 1.1.1 for React 19 compatibility, update .gitignore"
+
+pm2 stop tipit-dev
+
+```# PostgreSQL (замените YOUR_PASSWORD на реальный пароль)
+
+
+
+---DATABASE_URL="postgresql://tipit_user:YOUR_PASSWORD@45.144.52.58:5432/tipit?schema=public"git commit -m "fix: update vaul to 1.1.1 for React 19, update .gitignore"git push origin dev
+
+
+
+## 🔄 Обновление кода
+
+
+
+```bash# MongoDB (admin:prefectdinorah)git push origin master
+
+cd /root/tipit/dev
+
+git pull origin devMONGODB_URI="mongodb://admin:prefectdinorah@45.144.52.58:27017/tipit"
+
+npm install --legacy-peer-deps  # Если package.json изменился
+
+npm run build# Запушьте в обе ветки```
+
+pm2 restart tipit-dev
+
+```# NextAuth
+
+
+
+---NEXTAUTH_URL="http://45.144.52.219:3001"git checkout dev
+
+
+
+## 🐛 Решение проблемNEXTAUTH_SECRET="dev_secret_ЗАМЕНИТЕ_НА_РЕЗУЛЬТАТ_openssl_rand"
+
+
+
+### MongoDB ошибка "Invalid scheme"git push origin dev### 1.2 На сервере обновите код
+
+
+
+**Причина:** В `.env` указан неправильный URI с префиксом `mongosh`# App
+
+
+
+**Решение:**NODE_ENV=development
+
+```env
+
+# ❌ НЕПРАВИЛЬНО:PORT=3001
+
+MONGODB_URI="mongosh streamdonate://..."
+
+NEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"git checkout master  ```bash
+
+# ✅ ПРАВИЛЬНО:
+
+MONGODB_URI="mongodb://streamdonate_mongo_user:d57b9iF62KFVRi8v1Nmx8Tv8@45.144.52.58:27017/tipit"```
+
+```
+
+git merge devssh root@45.144.52.219
+
+После исправления `.env`:
+
+```bash**Сгенерируйте секрет:**
+
+pm2 restart tipit-dev
+
+``````bashgit push origin master
+
+
+
+### Prisma версия не совпадаетopenssl rand -base64 32
+
+
+
+```bash# Скопируйте результат в NEXTAUTH_SECRET```# DEV окружение
+
+npm install --save-dev prisma@latest
+
+npm install @prisma/client@latest```
+
+npm run prisma:generate
+
+npm run buildcd /root/tipit/dev
+
+pm2 restart tipit-dev
+
+```---
+
+
+
+### PM2 процесс падает### На сервере обновите код:git pull origin dev
+
+
+
+```bash## 📦 Шаг 3: Установка зависимостей (5 минут)
+
+# Смотрим ошибки
+
+pm2 logs tipit-dev --err --lines 50
+
+
+
+# Удаляем и создаём заново```bash
+
+pm2 delete tipit-dev
+
+cd /root/tipit/devcd /root/tipit/dev```bash# IFT окружение
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001
+
+pm2 save
+
+```
+
+# Установка с --legacy-peer-depsssh root@45.144.52.219cd /root/tipit/ift
+
+### Nginx 502 Bad Gateway
+
+npm install --legacy-peer-deps
+
+```bash
+
+# Проверяем что PM2 запущенgit pull origin master
+
+pm2 status  # Должен быть online
+
+# Генерация Prisma Client
+
+# Проверяем порт
+
+netstat -tulpn | grep :3001npm run prisma:generate# DEV```
+
+
+
+# Логи Nginx
+
+sudo tail -f /var/log/nginx/tipit-staging-access.log
+
+sudo tail -f /var/log/nginx/error.log# Применение миграцийcd /root/tipit/dev
+
+```
+
+npm run prisma:migrate
+
+---
+
+git pull origin dev---
+
+## ✅ Проверка работы
+
+# Сборка
+
+1. **Статус PM2:** `pm2 status` → `tipit-dev` должен быть `online`
+
+2. **Логи:** `pm2 logs tipit-dev` → нет критических ошибокnpm run build
+
+3. **Браузер:** http://45.144.52.219:3001 → приложение открывается
+
+4. **Авторизация:** Логин должен перенаправить на главную страницу```
+
+
+
+---# IFT## 🎯 Шаг 2: Установка и настройка на сервере (10 минут)
+
+
+
+## 💡 Полезные команды**⏳ Ожидайте:** Сборка Next.js может занять 2-5 минут
+
+
+
+```bashcd /root/tipit/ift```bash
+
+# Мониторинг в реальном времени
+
+pm2 monit---
+
+
+
+# Детальная информация о процессеgit pull origin master
+
+pm2 show tipit-dev
+
+## 🚀 Шаг 4: Запуск через PM2 (2 минуты)cd /root/tipit/dev
+
+# Автозапуск PM2 при перезагрузке сервера
+
+pm2 startup
+
+pm2 save
+
+```bash```nano .env
+
+# Проверка использования портов
+
+netstat -tulpn | grep :3001# Запуск DEV окружения
+
+
+
+# Проверка процессов Node.jscd /root/tipit/dev```
+
+ps aux | grep node
+
+```pm2 start npm --name "tipit-dev" -- start -- -p 3001
 
 
 
@@ -20,251 +462,322 @@
 
 
 
-## 📋 Что нужно сделать## 📋 Что получится в результате
+## 📝 Следующие шаги# Проверка статуса
 
 
 
-1. ✅ Исправить зависимости (vaul для React 19)После выполнения оставшихся шагов:
+1. ✅ DEV окружение работаетpm2 statusВставьте (замените данные на свои):
 
-2. Настроить .env файлы на сервере- ✅ Автоматический деплой при push в dev → staging (порт 3001)
+2. ⏳ Настройка IFT окружения (порт 3000)
 
-3. Установить зависимости с `--legacy-peer-deps`- ✅ Автоматический деплой при push в master → IFT (порт 3000)
-
-4. Собрать приложения- ✅ PM2 управление процессами
-
-5. Запустить через PM2- ✅ Единая база данных для обоих окружений
-
-6. Настроить GitHub Secrets
-
-7. Протестировать автодеплой---
+3. ⏳ Настройка GitHub Actions для автодеплоя
 
 
 
----## � Шаг 1: Исправление зависимостей (3 минуты)
+---# Должно показать:## 🎯 Шаг 2: Настройка .env файлов (5 минут)```env
 
 
 
-## 🔧 Шаг 1: Обновление кода (2 минуты)### 1.1 На локальной машине обновите package.json
+**🎯 Текущая задача:** DEV запущен и работает на порту 3001!# ┌─────┬──────────┬─────────┬──────────┐
 
 
 
-### На локальной машине:Я уже обновил `vaul` до версии 1.1.1 (совместима с React 19).
+**Доступ:** http://45.144.52.219:3001# │ id  │ name     │ status  │ memory   │# Общая БД для обоих окружений (пока)
 
 
+# ├─────┼──────────┼─────────┼──────────┤
 
-```bash**Закоммитьте изменения:**
+# │ 0   │ tipit-dev│ online  │ ~150MB   │### 2.1 DEV окружениеDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
 
-cd c:\dev\tipit\tipit```bash
-
-cd c:\dev\tipit\tipit
-
-# Закоммитьте обновления (vaul 1.1.1 + .gitignore)git add package.json .gitignore
-
-git add package.json .gitignoregit commit -m "fix: update vaul to 1.1.1 for React 19 compatibility, update .gitignore"
-
-git commit -m "fix: update vaul to 1.1.1 for React 19, update .gitignore"git push origin dev
-
-git push origin master
-
-# Запушьте в обе ветки```
-
-git checkout dev
-
-git push origin dev### 1.2 На сервере обновите код
-
-
-
-git checkout master  ```bash
-
-git merge devssh root@45.144.52.219
-
-git push origin master
-
-```# DEV окружение
-
-cd /root/tipit/dev
-
-### На сервере обновите код:git pull origin dev
-
-
-
-```bash# IFT окружение
-
-ssh root@45.144.52.219cd /root/tipit/ift
-
-git pull origin master
-
-# DEV```
-
-cd /root/tipit/dev
-
-git pull origin dev---
-
-
-
-# IFT## 🎯 Шаг 2: Установка и настройка на сервере (10 минут)
-
-cd /root/tipit/ift```bash
-
-git pull origin mastercd /root/tipit/dev
-
-```nano .env
-
-```
-
----
-
-Вставьте (замените данные на свои):
-
-## 🎯 Шаг 2: Настройка .env файлов (5 минут)```env
-
-# Общая БД для обоих окружений (пока)
-
-### 2.1 DEV окружениеDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
+# └─────┴──────────┴─────────┴──────────┘
 
 MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
 
-```bash
+# Логи
+
+pm2 logs tipit-dev --lines 30```bash
+
+```
 
 cd /root/tipit/dev# Уникальный секрет для dev
 
+---
+
 nano .envSESSION_SECRET="dev-secret-change-me-use-openssl-rand"
+
+## ✅ Шаг 5: Тестирование приложения (2 минуты)
 
 ```
 
-# Настройки окружения
+### В браузере:
 
-**Вставьте (замените на свои данные):**NODE_ENV=development
+http://45.144.52.219:3001# Настройки окружения
 
-PORT=3001
 
-```envNEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
 
-# База данных PostgreSQL (общая для dev и ift)```
+### На сервере проверьте логи:**Вставьте (замените на свои данные):**NODE_ENV=development
+
+```bash
+
+pm2 logs tipit-devPORT=3001
+
+
+
+# Nginx логи```envNEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+
+sudo tail -f /var/log/nginx/tipit-staging-access.log
+
+sudo tail -f /var/log/nginx/error.log# База данных PostgreSQL (общая для dev и ift)```
+
+```
 
 DATABASE_URL="postgresql://tipit_user:your_password@45.144.52.58:5432/tipit?schema=public"
 
-### 1.7 Настройте .env для IFT (тестовое окружение)
+### Проверка портов:
 
-# MongoDB (общая для dev и ift)```bash
+```bash### 1.7 Настройте .env для IFT (тестовое окружение)
+
+netstat -tulpn | grep :3001
+
+# Должно показать процесс node на порту 3001# MongoDB (общая для dev и ift)```bash
+
+```
 
 MONGODB_URI="mongodb://tipit_user:your_password@45.144.52.58:27017/tipit"cd /root/tipit/ift
 
+---
+
 nano .env
+
+## 🐛 Troubleshooting
 
 # NextAuth (уникальный секрет для DEV!)```
 
-NEXTAUTH_URL="http://45.144.52.219:3001"
+### npm install падает?
 
-NEXTAUTH_SECRET="dev_secret_change_me_use_openssl_rand_base64_32"Вставьте (замените данные на свои):
+```bashNEXTAUTH_URL="http://45.144.52.219:3001"
 
-```env
+# Очистка и переустановка
+
+cd /root/tipit/devNEXTAUTH_SECRET="dev_secret_change_me_use_openssl_rand_base64_32"Вставьте (замените данные на свои):
+
+rm -rf node_modules package-lock.json
+
+npm install --legacy-peer-deps```env
+
+```
 
 # App# Общая БД для обоих окружений (пока)
 
-NODE_ENV=developmentDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
+### Prisma ошибка "Can't reach database server"?
 
-PORT=3001MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
+```bashNODE_ENV=developmentDATABASE_URL="postgresql://tipit_user:password@45.144.52.58:5432/tipit?schema=public"
 
-NEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+# Проверьте .env
 
-```# Уникальный секрет для IFT
+cat /root/tipit/dev/.env | grep DATABASEPORT=3001MONGODB_URI="mongodb://tipit_user:password@45.144.52.58:27017/tipit"
 
-SESSION_SECRET="ift-secret-change-me-use-openssl-rand"
 
-**💡 Сгенерируйте безопасный секрет:**
+
+# Тест подключенияNEXT_PUBLIC_APP_URL="http://45.144.52.219:3001"
+
+psql -h 45.144.52.58 -U tipit_user -d tipit
+
+``````# Уникальный секрет для IFT
+
+
+
+### MongoDB ошибка подключения?SESSION_SECRET="ift-secret-change-me-use-openssl-rand"
+
+```bash
+
+# Проверьте .env**💡 Сгенерируйте безопасный секрет:**
+
+cat /root/tipit/dev/.env | grep MONGODB
 
 ```bash# Настройки окружения
 
-openssl rand -base64 32NODE_ENV=production
+# Тест подключения
+
+mongosh mongodb://admin:prefectdinorah@45.144.52.58:27017/tipitopenssl rand -base64 32NODE_ENV=production
+
+```
 
 ```PORT=3000
 
-NEXT_PUBLIC_APP_URL="http://45.144.52.219"
+### PM2 процесс падает?
 
-### 2.2 IFT окружение```
+```bashNEXT_PUBLIC_APP_URL="http://45.144.52.219"
+
+# Логи с ошибками
+
+pm2 logs tipit-dev --err --lines 50### 2.2 IFT окружение```
 
 
+
+# Перезапуск
+
+pm2 restart tipit-dev
 
 ```bash**💡 Совет:** Сгенерируйте безопасные секреты:
 
-cd /root/tipit/ift```bash
+# Если не помогает, удалите и создайте заново
 
-nano .envopenssl rand -base64 32
+pm2 delete tipit-devcd /root/tipit/ift```bash
 
-``````
+cd /root/tipit/dev
 
+pm2 start npm --name "tipit-dev" -- start -- -p 3001nano .envopenssl rand -base64 32
 
+pm2 save
 
-**Вставьте (замените на свои данные):**### 1.8 Установите и соберите DEV
-
-```bash
-
-```envcd /root/tipit/dev
-
-# База данных PostgreSQL (общая для dev и ift)npm install
-
-DATABASE_URL="postgresql://tipit_user:your_password@45.144.52.58:5432/tipit?schema=public"npm run prisma:generate
-
-npm run prisma:migrate
-
-# MongoDB (общая для dev и ift)npm run build
-
-MONGODB_URI="mongodb://tipit_user:your_password@45.144.52.58:27017/tipit"```
+`````````
 
 
 
-# NextAuth (уникальный секрет для IFT!)### 1.9 Установите и соберите IFT
-
-NEXTAUTH_URL="http://45.144.52.219:3000"```bash
-
-NEXTAUTH_SECRET="ift_secret_different_from_dev_openssl_rand"cd /root/tipit/ift
-
-npm install
-
-# Appnpm run prisma:generate
-
-NODE_ENV=production# НЕ запускаем migrate здесь - БД уже мигрирована в DEV
-
-PORT=3000npm run build
-
-NEXT_PUBLIC_APP_URL="http://45.144.52.219:3000"```
-
-```
-
-### 1.10 Настройте Nginx
-
----
-
-**Скопируйте конфиги:**
-
-## 📦 Шаг 3: Установка и сборка (10 минут)```bash
-
-sudo cp /root/tipit/dev/nginx/tipit-staging.conf /etc/nginx/sites-available/
-
-### 3.1 DEV окружениеsudo cp /root/tipit/ift/nginx/tipit-production.conf /etc/nginx/sites-available/
-
-```
+### Nginx 502 Bad Gateway?
 
 ```bash
 
-cd /root/tipit/dev**Активируйте конфиги:**
+# Проверьте PM2**Вставьте (замените на свои данные):**### 1.8 Установите и соберите DEV
+
+pm2 status  # Должен быть online
 
 ```bash
 
-# Установка с --legacy-peer-deps (из-за React 19)sudo ln -s /etc/nginx/sites-available/tipit-staging.conf /etc/nginx/sites-enabled/
+# Проверьте порт
 
-npm install --legacy-peer-depssudo ln -s /etc/nginx/sites-available/tipit-production.conf /etc/nginx/sites-enabled/
+netstat -tulpn | grep :3001```envcd /root/tipit/dev
+
+
+
+# Логи Nginx# База данных PostgreSQL (общая для dev и ift)npm install
+
+sudo tail -f /var/log/nginx/error.log
+
+```DATABASE_URL="postgresql://tipit_user:your_password@45.144.52.58:5432/tipit?schema=public"npm run prisma:generate
+
+
+
+---npm run prisma:migrate
+
+
+
+## 📋 Следующие шаги (ПОТОМ)# MongoDB (общая для dev и ift)npm run build
+
+
+
+После успешного запуска DEV:MONGODB_URI="mongodb://tipit_user:your_password@45.144.52.58:27017/tipit"```
+
+
+
+1. ✅ Настроить IFT окружение (аналогично DEV, но порт 3000)
+
+2. ✅ Настроить GitHub Secrets для автодеплоя
+
+3. ✅ Протестировать автодеплой# NextAuth (уникальный секрет для IFT!)### 1.9 Установите и соберите IFT
+
+
+
+**Пока концентрируемся только на DEV!**NEXTAUTH_URL="http://45.144.52.219:3000"```bash
+
+
+
+---NEXTAUTH_SECRET="ift_secret_different_from_dev_openssl_rand"cd /root/tipit/ift
+
+
+
+## 📝 Чеклист DEVnpm install
+
+
+
+- [ ] PostgreSQL подключается ✅# Appnpm run prisma:generate
+
+- [ ] MongoDB подключается ✅  
+
+- [ ] .env настроен с правильными учётными даннымиNODE_ENV=production# НЕ запускаем migrate здесь - БД уже мигрирована в DEV
+
+- [ ] npm install --legacy-peer-deps выполнен
+
+- [ ] npm run prisma:generate выполненPORT=3000npm run build
+
+- [ ] npm run prisma:migrate выполнен
+
+- [ ] npm run build выполненNEXT_PUBLIC_APP_URL="http://45.144.52.219:3000"```
+
+- [ ] PM2 процесс tipit-dev запущен
+
+- [ ] PM2 статус показывает "online"```
+
+- [ ] Приложение доступно: http://45.144.52.219:3001
+
+- [ ] Логи PM2 не показывают критических ошибок### 1.10 Настройте Nginx
+
+
+
+------
+
+
+
+## 💡 Полезные команды**Скопируйте конфиги:**
+
+
+
+```bash## 📦 Шаг 3: Установка и сборка (10 минут)```bash
+
+# Просмотр логов
+
+pm2 logs tipit-devsudo cp /root/tipit/dev/nginx/tipit-staging.conf /etc/nginx/sites-available/
+
+
+
+# Остановить### 3.1 DEV окружениеsudo cp /root/tipit/ift/nginx/tipit-production.conf /etc/nginx/sites-available/
+
+pm2 stop tipit-dev
 
 ```
 
-# Генерация Prisma Client
+# Перезапустить
+
+pm2 restart tipit-dev```bash
+
+
+
+# Удалитьcd /root/tipit/dev**Активируйте конфиги:**
+
+pm2 delete tipit-dev
+
+```bash
+
+# Статус
+
+pm2 status# Установка с --legacy-peer-deps (из-за React 19)sudo ln -s /etc/nginx/sites-available/tipit-staging.conf /etc/nginx/sites-enabled/
+
+
+
+# Детальная информацияnpm install --legacy-peer-depssudo ln -s /etc/nginx/sites-available/tipit-production.conf /etc/nginx/sites-enabled/
+
+pm2 show tipit-dev
+
+```
+
+# Мониторинг в реальном времени
+
+pm2 monit# Генерация Prisma Client
+
+```
 
 npm run prisma:generate**Проверьте и перезапустите:**
 
+---
+
 ```bash
 
+**🎯 Текущая задача:** Запустить DEV, протестировать, убедиться что всё работает!
+
 # Применение миграций БДsudo nginx -t
+
+**После этого:** Настроим IFT и автодеплой 🚀
 
 npm run prisma:migratesudo systemctl reload nginx
 

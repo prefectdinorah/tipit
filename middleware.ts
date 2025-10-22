@@ -33,6 +33,27 @@ export function middleware(request: NextRequest) {
     return response
   }
 
+  // Защита главной страницы и других защищённых роутов
+  const protectedRoutes = ["/", "/settings", "/donations"]
+  const publicRoutes = ["/auth/login", "/auth/register"]
+  const isDonationRoute = pathname.startsWith("/donate/")
+
+  // Пропускаем публичные страницы и страницы донатов
+  if (publicRoutes.includes(pathname) || isDonationRoute) {
+    return NextResponse.next()
+  }
+
+  // Проверяем авторизацию для защищённых страниц
+  if (protectedRoutes.includes(pathname)) {
+    const token = request.cookies.get("token")
+    
+    if (!token) {
+      // Редирект на страницу логина
+      const loginUrl = new URL("/auth/login", request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   return NextResponse.next()
 }
 

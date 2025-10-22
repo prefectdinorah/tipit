@@ -1,271 +1,540 @@
-# ⚡ Шпаргалка команд TIPIT CI/CD
+# ⚡ Шпаргалка команд TIPIT# ⚡ Шпаргалка команд TIPIT CI/CD
 
-**Репозиторий:** `git@github.com:prefectdinorah/tipit.git`
 
-**Окружения:**
-- **DEV (Staging):** dev ветка → порт 3001 → `/root/tipit/dev`
-- **IFT (Testing):** master ветка → порт 3000 → `/root/tipit/ift`
 
-**Базы данных:** Единая `tipit` (PostgreSQL + MongoDB на 45.144.52.58)
+**Репозиторий:** `git@github.com:prefectdinorah/tipit.git`**Репозиторий:** `git@github.com:prefectdinorah/tipit.git`
 
----
 
-## 🔑 Git и SSH
 
-### Первый push в GitHub
+**Окружения:****Окружения:**
 
-```bash
+- **DEV:** порт 3001 → `/root/tipit/dev`- **DEV (Staging):** dev ветка → порт 3001 → `/root/tipit/dev`
+
+- **IFT:** порт 3000 → `/root/tipit/ift` (пока не настроено)- **IFT (Testing):** master ветка → порт 3000 → `/root/tipit/ift`
+
+
+
+**Базы данных:****Базы данных:** Единая `tipit` (PostgreSQL + MongoDB на 45.144.52.58)
+
+- PostgreSQL: `streamdonate_db` на 45.144.52.58:5432
+
+- MongoDB: `tipit` на 45.144.52.58:27017---
+
+
+
+---## 🔑 Git и SSH
+
+
+
+## 🔄 Деплой### Первый push в GitHub
+
+
+
+### DEV окружение```bash
+
 # Создать SSH ключ для GitHub
-ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519_github
 
-# Добавить ключ на GitHub
-cat ~/.ssh/id_ed25519_github.pub
-# → GitHub → Settings → SSH keys → Add
+```bashssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519_github
 
-# Инициализировать репозиторий
+git checkout dev
+
+git add .# Добавить ключ на GitHub
+
+git commit -m "Your changes"cat ~/.ssh/id_ed25519_github.pub
+
+git push origin dev# → GitHub → Settings → SSH keys → Add
+
+# → http://45.144.52.219:3001
+
+```# Инициализировать репозиторий
+
 git init
-git add .
+
+---git add .
+
 git commit -m "Initial commit"
-git branch -M master
+
+## 📦 PM2 (Process Manager)git branch -M master
+
 git remote add origin git@github.com:prefectdinorah/tipit.git
-git push -u origin master
 
-# Создать dev ветку
+```bashgit push -u origin master
+
+# Статус
+
+pm2 status# Создать dev ветку
+
 git checkout -b dev
-git push -u origin dev
-```
 
-### SSH ключи для деплоя
+# Логиgit push -u origin dev
 
-```bash
-# Создать ключ для GitHub Actions
+pm2 logs tipit-dev```
+
+pm2 logs tipit-dev --lines 50
+
+pm2 logs tipit-dev --err### SSH ключи для деплоя
+
+
+
+# Перезапуск```bash
+
+pm2 restart tipit-dev# Создать ключ для GitHub Actions
+
 ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/tipit_deploy
 
-# Добавить на сервер
+# Остановка
+
+pm2 stop tipit-dev# Добавить на сервер
+
 ssh-copy-id -i ~/.ssh/tipit_deploy.pub root@45.144.52.219
 
-# Проверить
+# Удаление
+
+pm2 delete tipit-dev# Проверить
+
 ssh -i ~/.ssh/tipit_deploy root@45.144.52.219 "whoami"
 
-# Скопировать приватный ключ для GitHub Secrets
-cat ~/.ssh/tipit_deploy
+# Запуск заново
+
+cd /root/tipit/dev# Скопировать приватный ключ для GitHub Secrets
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001cat ~/.ssh/tipit_deploy
+
+pm2 save```
+
 ```
+
+---
 
 ---
 
 ## 🔄 Деплой
 
+## 🖥️ На сервере
+
 ### Staging (DEV)
-```bash
+
+### Подключение```bash
+
 git checkout dev
-git add .
-git commit -m "Your changes"
-git push origin dev
+
+```bashgit add .
+
+ssh root@45.144.52.219git commit -m "Your changes"
+
+```git push origin dev
+
 # → Автодеплой на http://45.144.52.219:3001
+
+### Обновление кода```
+
+
+
+```bash### IFT (Testing)
+
+cd /root/tipit/dev```bash
+
+git pull origin devgit checkout master
+
+npm install --legacy-peer-deps  # Если package.json изменилсяgit merge dev
+
+npm run buildgit push origin master
+
+pm2 restart tipit-dev# → Автодеплой на http://45.144.52.219:3000
+
+``````
+
+
+
+### Редактирование .env---
+
+
+
+```bash## 🖥️ На сервере (SSH: root@45.144.52.219)
+
+cd /root/tipit/dev
+
+nano .env### Подключение
+
+# После изменений:```bash
+
+pm2 restart tipit-devssh root@45.144.52.219
+
 ```
-
-### IFT (Testing)
-```bash
-git checkout master
-git merge dev
-git push origin master
-# → Автодеплой на http://45.144.52.219:3000
-```
-
----
-
-## 🖥️ На сервере (SSH: root@45.144.52.219)
-
-### Подключение
-```bash
-ssh root@45.144.52.219
 
 # С использованием ключа
-ssh -i ~/.ssh/tipit_deploy root@45.144.52.219
+
+---ssh -i ~/.ssh/tipit_deploy root@45.144.52.219
+
 ```
-
-### Навигация
-```bash
-cd /root/tipit/dev          # Staging
-cd /root/tipit/ift          # IFT
-
-ls -la                      # Список файлов
-cat .env                    # Показать .env
-nano .env                   # Редактировать .env
-```
-
----
-
-## 📦 PM2 (Process Manager)
-
-### Основные команды
-```bash
-pm2 list                    # Список процессов
-pm2 logs                    # Все логи
-pm2 logs tipit-dev          # Логи staging
-pm2 logs tipit-ift          # Логи IFT
-
-pm2 restart tipit-dev       # Перезапустить staging
-pm2 restart tipit-ift       # Перезапустить IFT
-
-pm2 stop tipit-dev          # Остановить
-pm2 start tipit-dev         # Запустить
-
-pm2 show tipit-dev          # Детали процесса
-pm2 monit                   # Мониторинг в реальном времени
-```
-
-### Первый запуск
-```bash
-# Staging
-pm2 start npm --name "tipit-dev" -- start -- -p 3001
-
-# IFT
-pm2 start npm --name "tipit-ift" -- start -- -p 3000
-
-# Сохранить
-pm2 save
-pm2 startup
-```
-
----
-
-## 🌐 Nginx
-
-### Основные команды
-```bash
-sudo nginx -t                       # Проверить конфиг
-sudo systemctl reload nginx         # Перезагрузить
-sudo systemctl restart nginx        # Перезапустить
-sudo systemctl status nginx         # Статус
-
-sudo tail -f /var/log/nginx/access.log    # Логи доступа
-sudo tail -f /var/log/nginx/error.log     # Логи ошибок
-```
-
-### Конфиги
-```bash
-# Staging
-sudo nano /etc/nginx/sites-available/tipit-staging.conf
-
-# IFT
-sudo nano /etc/nginx/sites-available/tipit-production.conf
-
-# После изменений
-sudo nginx -t && sudo systemctl reload nginx
-```
-
----
 
 ## 🗄️ Базы данных
 
-### PostgreSQL (45.144.52.58)
-```bash
+### Навигация
+
+### PostgreSQL```bash
+
+cd /root/tipit/dev          # Staging
+
+```bashcd /root/tipit/ift          # IFT
+
 # Подключение
-psql -h 45.144.52.58 -U user -d tipit
 
-# Внутри psql:
+psql -h 45.144.52.58 -U streamdonate_user -d streamdonate_dbls -la                      # Список файлов
+
+# Пароль: B5oFzj1O0DyAhNzWlfMWqW71cat .env                    # Показать .env
+
+nano .env                   # Редактировать .env
+
+# Команды внутри psql:```
+
 \dt                         # Список таблиц
-\d+ users                   # Структура таблицы
-SELECT * FROM users;        # Запрос
-\q                          # Выход
 
-# Prisma
-cd /root/tipit/dev
-npm run prisma:studio       # GUI на :5555
-npm run prisma:migrate      # Применить миграции
+\d+ users                   # Структура таблицы---
+
+SELECT * FROM users;        # Запрос
+
+\q                          # Выход## 📦 PM2 (Process Manager)
+
 ```
 
-### MongoDB (45.144.52.58)
+### Основные команды
+
+### MongoDB```bash
+
+pm2 list                    # Список процессов
+
+```bashpm2 logs                    # Все логи
+
+# Подключениеpm2 logs tipit-dev          # Логи staging
+
+mongosh mongodb://streamdonate_mongo_user:d57b9iF62KFVRi8v1Nmx8Tv8@45.144.52.58:27017/tipitpm2 logs tipit-ift          # Логи IFT
+
+
+
+# Команды внутри mongosh:pm2 restart tipit-dev       # Перезапустить staging
+
+show collections            # Список коллекцийpm2 restart tipit-ift       # Перезапустить IFT
+
+db.donations.find()         # Найти все
+
+db.donations.countDocuments()  # Количествоpm2 stop tipit-dev          # Остановить
+
+exit                        # Выходpm2 start tipit-dev         # Запустить
+
+```
+
+pm2 show tipit-dev          # Детали процесса
+
+---pm2 monit                   # Мониторинг в реальном времени
+
+```
+
+## 🌐 Nginx
+
+### Первый запуск
+
+```bash```bash
+
+# Проверка конфига# Staging
+
+sudo nginx -tpm2 start npm --name "tipit-dev" -- start -- -p 3001
+
+
+
+# Перезагрузка# IFT
+
+sudo systemctl reload nginxpm2 start npm --name "tipit-ift" -- start -- -p 3000
+
+
+
+# Статус# Сохранить
+
+sudo systemctl status nginxpm2 save
+
+pm2 startup
+
+# Логи```
+
+sudo tail -f /var/log/nginx/tipit-staging-access.log
+
+sudo tail -f /var/log/nginx/error.log---
+
+```
+
+## 🌐 Nginx
+
+---
+
+### Основные команды
+
+## 🔧 Troubleshooting```bash
+
+sudo nginx -t                       # Проверить конфиг
+
+### MongoDB ошибка "Invalid scheme"sudo systemctl reload nginx         # Перезагрузить
+
+sudo systemctl restart nginx        # Перезапустить
+
+```bashsudo systemctl status nginx         # Статус
+
+# Проверьте .env
+
+cat /root/tipit/dev/.env | grep MONGODBsudo tail -f /var/log/nginx/access.log    # Логи доступа
+
+sudo tail -f /var/log/nginx/error.log     # Логи ошибок
+
+# Должно быть:```
+
+MONGODB_URI="mongodb://streamdonate_mongo_user:..."
+
+### Конфиги
+
+# НЕ должно быть:```bash
+
+MONGODB_URI="mongosh streamdonate://..."# Staging
+
+sudo nano /etc/nginx/sites-available/tipit-staging.conf
+
+# После исправления:
+
+pm2 restart tipit-dev# IFT
+
+```sudo nano /etc/nginx/sites-available/tipit-production.conf
+
+
+
+### PM2 процесс падает# После изменений
+
+sudo nginx -t && sudo systemctl reload nginx
+
+```bash```
+
+# Смотрим ошибки
+
+pm2 logs tipit-dev --err --lines 50---
+
+
+
+# Пересоздаём## 🗄️ Базы данных
+
+pm2 delete tipit-dev
+
+cd /root/tipit/dev### PostgreSQL (45.144.52.58)
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001```bash
+
+pm2 save# Подключение
+
+```psql -h 45.144.52.58 -U user -d tipit
+
+
+
+### Nginx 502 Bad Gateway# Внутри psql:
+
+\dt                         # Список таблиц
+
+```bash\d+ users                   # Структура таблицы
+
+# Проверяем PM2SELECT * FROM users;        # Запрос
+
+pm2 status  # Должен быть online\q                          # Выход
+
+
+
+# Проверяем порт# Prisma
+
+netstat -tulpn | grep :3001cd /root/tipit/dev
+
+npm run prisma:studio       # GUI на :5555
+
+# Логиnpm run prisma:migrate      # Применить миграции
+
+pm2 logs tipit-dev```
+
+sudo tail -f /var/log/nginx/error.log
+
+```### MongoDB (45.144.52.58)
+
 ```bash
-# Подключение
+
+### Prisma версии не совпадают# Подключение
+
 mongosh mongodb://user:pass@45.144.52.58:27017/tipit
 
-# Внутри mongosh:
-show collections            # Список коллекций
-db.donations.find()         # Найти все документы
-db.donations.countDocuments()  # Количество
-exit                        # Выход
+```bash
+
+cd /root/tipit/dev# Внутри mongosh:
+
+npm install --save-dev prisma@latestshow collections            # Список коллекций
+
+npm install @prisma/client@latestdb.donations.find()         # Найти все документы
+
+npm run prisma:generatedb.donations.countDocuments()  # Количество
+
+npm run buildexit                        # Выход
+
+pm2 restart tipit-dev```
+
 ```
 
 **⚠️ Обе окружения используют ОДНУ базу данных:** `tipit`
 
 ---
 
+---
+
+## 💡 Полезные команды
+
 ## 🔧 Troubleshooting
 
-### PM2 не запускается
 ```bash
+
+# Мониторинг PM2### PM2 не запускается
+
+pm2 monit```bash
+
 cd /root/tipit/dev
-pm2 logs tipit-dev --lines 50      # Смотрим логи
+
+# Детальная информацияpm2 logs tipit-dev --lines 50      # Смотрим логи
+
+pm2 show tipit-dev
 
 # Пересоздать процесс
-pm2 delete tipit-dev
-pm2 start npm --name "tipit-dev" -- start -- -p 3001
+
+# Проверка портовpm2 delete tipit-dev
+
+netstat -tulpn | grep :3001pm2 start npm --name "tipit-dev" -- start -- -p 3001
+
 pm2 save
-```
+
+# Процессы Node.js```
+
+ps aux | grep node
 
 ### Nginx 502 Bad Gateway
-```bash
-pm2 list                            # Проверить процессы (должны быть online)
-netstat -tulpn | grep :3001         # Проверить порт staging
-netstat -tulpn | grep :3000         # Проверить порт IFT
-sudo tail -f /var/log/nginx/error.log   # Смотреть логи
-```
 
-### База данных не подключается
+# Использование диска```bash
+
+df -hpm2 list                            # Проверить процессы (должны быть online)
+
+netstat -tulpn | grep :3001         # Проверить порт staging
+
+# Использование памятиnetstat -tulpn | grep :3000         # Проверить порт IFT
+
+free -hsudo tail -f /var/log/nginx/error.log   # Смотреть логи
+
+``````
+
+
+
+---### База данных не подключается
+
 ```bash
-# Проверить .env
+
+## 📝 NPM команды# Проверить .env
+
 cat /root/tipit/dev/.env | grep DATABASE
 
-# Проверить доступ
-psql -h 45.144.52.58 -U user -d tipit
-mongosh mongodb://user:pass@45.144.52.58:27017/tipit
-```
-
-### Build падает
 ```bash
+
+cd /root/tipit/dev# Проверить доступ
+
+psql -h 45.144.52.58 -U user -d tipit
+
+# Установка зависимостейmongosh mongodb://user:pass@45.144.52.58:27017/tipit
+
+npm install --legacy-peer-deps```
+
+
+
+# Генерация Prisma Client### Build падает
+
+npm run prisma:generate```bash
+
 cd /root/tipit/dev
-rm -rf node_modules .next
-npm install
+
+# Применение миграцийrm -rf node_modules .next
+
+npm run prisma:migratenpm install
+
 npm run build
-```
+
+# Сборка приложения```
+
+npm run build
 
 ### Очистка места
-```bash
-# Очистить старые логи
-pm2 flush
 
-# Очистить node_modules (будьте осторожны!)
+# Запуск в production```bash
+
+npm start# Очистить старые логи
+
+```pm2 flush
+
+
+
+---# Очистить node_modules (будьте осторожны!)
+
 cd /root/tipit/dev
-rm -rf node_modules
+
+## 🚨 Экстренное восстановлениеrm -rf node_modules
+
 npm install
 
-# Очистить кэш npm
-npm cache clean --force
-```
+```bash
 
----
+# 1. Проверка PM2# Очистить кэш npm
+
+pm2 statusnpm cache clean --force
+
+pm2 restart tipit-dev```
+
+
+
+# 2. Проверка логов---
+
+pm2 logs tipit-dev --err --lines 100
 
 ## 📊 Мониторинг
 
-### Проверка статуса
-```bash
-# PM2
-pm2 list
+# 3. Полная перезагрузка PM2
 
-# Nginx
+pm2 delete tipit-dev### Проверка статуса
+
+cd /root/tipit/dev```bash
+
+pm2 start npm --name "tipit-dev" -- start -- -p 3001# PM2
+
+pm2 savepm2 list
+
+
+
+# 4. Проверка Nginx# Nginx
+
+sudo nginx -tsudo systemctl status nginx
+
 sudo systemctl status nginx
 
-# Порты
+sudo systemctl restart nginx# Порты
+
 netstat -tulpn | grep :3001         # Staging
-netstat -tulpn | grep :3000         # IFT
 
-# Диск
-df -h
+# 5. Проверка баз данныхnetstat -tulpn | grep :3000         # IFT
 
-# Память
+psql -h 45.144.52.58 -U streamdonate_user -d streamdonate_db
+
+mongosh mongodb://streamdonate_mongo_user:d57b9iF62KFVRi8v1Nmx8Tv8@45.144.52.58:27017/tipit# Диск
+
+```df -h
+
+
+
+---# Память
+
 free -h
+
+**Push в dev = автодеплой на порт 3001!** 🚀
 
 # CPU
 top
