@@ -45,13 +45,21 @@ export function middleware(request: NextRequest) {
 
   // Проверяем авторизацию для защищённых страниц
   if (protectedRoutes.includes(pathname)) {
-    const token = request.cookies.get("token")
+    const token = request.cookies.get("session_token") // Исправлено: было "token", должно быть "session_token"
+    
+    console.log(`🔒 Middleware check for ${pathname}:`, {
+      hasToken: !!token,
+      tokenValue: token?.value ? `${token.value.substring(0, 10)}...` : 'none',
+      cookies: request.cookies.getAll().map((c: any) => c.name)
+    })
     
     if (!token) {
-      // Редирект на страницу логина
+      console.log(`❌ No session_token found, redirecting to login`)
       const loginUrl = new URL("/auth/login", request.url)
       return NextResponse.redirect(loginUrl)
     }
+    
+    console.log(`✅ Session token found, allowing access to ${pathname}`)
   }
 
   return NextResponse.next()
