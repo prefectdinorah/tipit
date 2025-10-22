@@ -18,8 +18,8 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      # 2. Деплоим на сервер через SSH
-      - name: 🚀 Deploy to Staging
+      # 2. Проверка SSH подключения к серверу
+      - name: � Test SSH Connection
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -27,34 +27,108 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            set -e  # Останавливаемся при ошибке
-            
-            echo "📂 Navigating to DEV directory..."
+            echo "✅ SSH connection successful!"
+            echo "Server: $(hostname)"
+            echo "User: $(whoami)"
+
+      # 3. Проверка GitHub SSH на сервере
+      - name: 🔑 Test GitHub SSH Access
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            echo "� Testing GitHub SSH connection..."
+            ssh -T git@github.com 2>&1 || true
+            echo "✅ GitHub SSH test completed"
+
+      # 4. Pull кода с GitHub
+      - name: 📥 Pull Latest Code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
             cd /root/tipit/dev
-            
-            echo "📥 Pulling latest changes from dev..."
+            echo "📥 Fetching from GitHub..."
             git fetch origin
+            echo "� Resetting to origin/dev..."
             git reset --hard origin/dev
-            
-            echo "📦 Installing dependencies..."
-            npm install
-            
+            echo "✅ Code updated to: $(git rev-parse --short HEAD)"
+
+      # 5. Установка зависимостей
+      - name: 📦 Install Dependencies
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /root/tipit/dev
+            echo "📦 Installing npm packages..."
+            npm install --legacy-peer-deps
+            echo "✅ Dependencies installed"
+
+      # 6. Генерация Prisma Client
+      - name: 🔨 Generate Prisma Client
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /root/tipit/dev
             echo "🔨 Generating Prisma Client..."
             npm run prisma:generate
-            
-            echo "🗄️  Running database migrations..."
+            echo "✅ Prisma Client generated"
+
+      # 7. Миграции базы данных
+      - name: 🗄️ Run Database Migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /root/tipit/dev
+            echo "🗄️ Running database migrations..."
             npm run prisma:migrate
-            
-            echo "🏗️  Building Next.js application..."
+            echo "✅ Migrations completed"
+
+      # 8. Сборка приложения
+      - name: 🏗️ Build Application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /root/tipit/dev
+            echo "🏗️ Building Next.js application..."
             npm run build
-            
-            echo "♻️  Restarting PM2 process..."
+            echo "✅ Build completed"
+
+      # 9. Перезапуск PM2
+      - name: ♻️ Restart PM2 Process
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            echo "♻️ Restarting PM2 process..."
             pm2 restart tipit-dev || pm2 start npm --name "tipit-dev" -- start -- -p 3001
-            
-            echo "💾 Saving PM2 configuration..."
             pm2 save
-            
-            echo "✅ Staging deployment completed!"
+            echo "✅ PM2 process restarted"
             pm2 status tipit-dev
 
       # 3. Уведомление об успешном деплое

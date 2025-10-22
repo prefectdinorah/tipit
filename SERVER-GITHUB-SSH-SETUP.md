@@ -46,7 +46,7 @@ cat ~/.ssh/github_tipit_deploy.pub
 ### На сервере (продолжение)
 
 ```bash
-# 4. Настраиваем SSH для использования этого ключа
+# 4. Настраиваем SSH для использования этого ключа (ПОСТОЯННО)
 cat >> ~/.ssh/config << 'EOF'
 
 # GitHub for tipit project
@@ -64,6 +64,8 @@ chmod 600 ~/.ssh/github_tipit_deploy
 # 6. Тестируем подключение
 ssh -T git@github.com
 ```
+
+**⚠️ ВАЖНО:** НЕ используйте `ssh-add`! Ключ должен быть прописан в `~/.ssh/config` чтобы работать постоянно, а не только в рамках сессии.
 
 Должно вывести:
 ```
@@ -125,14 +127,25 @@ git push origin dev
 ### SSH всё равно не работает
 
 ```bash
-# Проверьте что ключ добавлен
-ssh-add -l
+# Проверьте что ключ правильно настроен в config
+cat ~/.ssh/config | grep -A 5 "github.com"
 
-# Если пусто, добавьте вручную
-ssh-add ~/.ssh/github_tipit_deploy
+# Должно показать:
+# Host github.com
+#   HostName github.com
+#   User git
+#   IdentityFile ~/.ssh/github_tipit_deploy
+#   IdentitiesOnly yes
+
+# Проверьте права
+ls -la ~/.ssh/github_tipit_deploy*
+# Должно быть: -rw------- (600)
 
 # Проверьте verbose
 ssh -Tv git@github.com
+
+# ⚠️ НЕ используйте ssh-add! Это работает только в сессии!
+# Ключ должен быть в ~/.ssh/config
 ```
 
 ### GitHub Actions всё равно падает
