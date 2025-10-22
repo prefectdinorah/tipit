@@ -1,4 +1,56 @@
-# 🔧 Исправление ошибок MongoDB и страницы стримера
+# 🔧 Исправление ошибок на сервере
+
+## 🔴 Проблема 0: GitHub Actions падает с "Permission denied (publickey)"
+
+**Ошибка в Actions:**
+```
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+
+**Причина:** На сервере нет SSH ключа для доступа к GitHub
+
+**Решение:** См. подробную инструкцию в [SERVER-GITHUB-SSH-SETUP.md](SERVER-GITHUB-SSH-SETUP.md)
+
+**Быстрое решение:**
+
+```bash
+# На сервере
+ssh root@45.144.52.219
+
+# 1. Генерируем SSH ключ
+ssh-keygen -t ed25519 -C "tipit-server" -f ~/.ssh/github_tipit_deploy
+# Нажмите Enter 3 раза
+
+# 2. Показываем публичный ключ
+cat ~/.ssh/github_tipit_deploy.pub
+# Скопируйте и добавьте как Deploy Key:
+# https://github.com/prefectdinorah/tipit/settings/keys
+
+# 3. Настраиваем SSH config
+cat >> ~/.ssh/config << 'EOF'
+
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_tipit_deploy
+  IdentitiesOnly yes
+EOF
+
+chmod 600 ~/.ssh/config ~/.ssh/github_tipit_deploy
+
+# 4. Тестируем
+ssh -T git@github.com
+# Должно: "Hi prefectdinorah! You've successfully authenticated..."
+
+# 5. Проверяем git fetch
+cd /root/tipit/dev
+git fetch origin
+```
+
+После этого GitHub Actions заработает!
+
+---
 
 ## 🔴 Проблема 1: MongoDB ошибка "Invalid scheme"
 
