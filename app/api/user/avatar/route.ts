@@ -33,7 +33,7 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     }
 
     // Создаем директорию для аватаров если её нет
-    const uploadDir = path.join(process.cwd(), "public", "avatars")
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars")
     console.log("Upload directory:", uploadDir)
 
     if (!existsSync(uploadDir)) {
@@ -56,7 +56,7 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     console.log("File saved successfully")
 
     // Обновляем URL аватара в базе
-    const avatarUrl = `/avatars/${filename}`
+    const avatarUrl = `/uploads/avatars/${filename}`
     console.log("Updating database with avatarUrl:", avatarUrl)
 
     await prisma.user.update({

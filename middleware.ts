@@ -40,6 +40,12 @@ export function middleware(request: NextRequest) {
 
   // Пропускаем публичные страницы и страницы донатов
   if (publicRoutes.includes(pathname) || isDonationRoute) {
+    // Если пользователь авторизован и пытается зайти на login/register, редиректим на главную
+    const token = request.cookies.get("session_token")
+    if (token && publicRoutes.includes(pathname)) {
+      console.log(`✅ User is logged in, redirecting from ${pathname} to /`)
+      return NextResponse.redirect(new URL("/", request.url))
+    }
     return NextResponse.next()
   }
 
