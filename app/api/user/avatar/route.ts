@@ -56,7 +56,7 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     console.log("File saved successfully")
 
     // Обновляем URL аватара в базе
-    const avatarUrl = `/uploads/avatars/${filename}`
+    const avatarUrl = `/api/uploads/avatars/${filename}`
     console.log("Updating database with avatarUrl:", avatarUrl)
 
     await prisma.user.update({
