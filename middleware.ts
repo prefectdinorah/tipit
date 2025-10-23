@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/static") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/images") ||
-    pathname.startsWith("/uploads")
+    pathname.startsWith("/uploads") ||
+    pathname.startsWith("/alerts/sounds") ||
+    pathname.startsWith("/alerts/images")
   ) {
     return NextResponse.next()
   }
@@ -38,9 +40,10 @@ export function middleware(request: NextRequest) {
   const protectedRoutes = ["/", "/settings", "/donations"]
   const publicRoutes = ["/auth/login", "/auth/register"]
   const isDonationRoute = pathname.startsWith("/donate/")
+  const isAlertWidget = pathname.startsWith("/alerts/")
 
-  // Пропускаем публичные страницы и страницы донатов
-  if (publicRoutes.includes(pathname) || isDonationRoute) {
+  // Пропускаем публичные страницы, страницы донатов и alert widgets
+  if (publicRoutes.includes(pathname) || isDonationRoute || isAlertWidget) {
     // Если пользователь авторизован и пытается зайти на login/register, редиректим на главную
     const token = request.cookies.get("session_token")
     if (token && publicRoutes.includes(pathname)) {

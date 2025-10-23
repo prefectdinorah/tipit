@@ -170,3 +170,43 @@ model UserStatistic {
   @@index([userId, date])
   @@map("user_statistics")
 }
+
+model AlertSettings {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @unique @map("user_id")
+  
+  // Text settings
+  fontSize         Int      @default(40) @map("font_size")
+  fontFamily       String   @default("Roboto") @map("font_family")
+  textColor        String   @default("#ffffff") @map("text_color")
+  textAnimation    String   @default("slide") @map("text_animation")
+  
+  // Display settings
+  duration         Int      @default(5) // seconds
+  position         String   @default("center")
+  minAmount        Decimal  @default(1.00) @map("min_amount") @db.Decimal(10, 2)
+  
+  // Image settings
+  imageEnabled     Boolean  @default(true) @map("image_enabled")
+  imageUrl         String?  @map("image_url")
+  imageSize        Int      @default(200) @map("image_size")
+  
+  // Sound settings
+  soundEnabled     Boolean  @default(true) @map("sound_enabled")
+  soundUrl         String?  @map("sound_url")
+  soundVolume      Int      @default(75) @map("sound_volume")
+  
+  // TTS settings (Web Speech API)
+  ttsEnabled       Boolean  @default(false) @map("tts_enabled")
+  ttsVoice         String   @default("en-US") @map("tts_voice")
+  ttsSpeed         Float    @default(1.0) @map("tts_speed") @db.Real
+  ttsVolume        Int      @default(80) @map("tts_volume")
+  
+  // Security
+  alertToken       String   @unique @default(uuid()) @map("alert_token")
+  
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("alert_settings")
+}

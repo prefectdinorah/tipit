@@ -6,6 +6,7 @@ import Donation from "@/lib/models/donation"
 import { generateDonationId } from "@/lib/auth-utils"
 import { createLog } from "@/lib/logger"
 import { requireAuth } from "@/lib/auth-middleware"
+import { AlertEventManager } from "@/lib/alert-event-manager"
 
 const donationSchema = z.object({
   streamerUsername: z.string(),
@@ -131,6 +132,36 @@ export async function POST(request: NextRequest) {
         hasTrackRequest: !!validatedData.trackRequest,
       },
     })
+
+    // 🔔 ОТПРАВЛЯЕМ ALERT через SSE
+    try {
+      const alertSettings = await prisma.alertSettings.findUnique({
+        where: { userId: streamer.id },
+      })
+
+      if (alertSettings && validatedData.amount >= Number(alertSettings.minAmount)) {
+        console.log("🔔 Sending donation alert to SSE stream...")
+        
+        const alertData = {
+          id: donationId,
+          type: "donation" as const,
+          donorName: validatedData.isAnonymous ? "Anonymous" : validatedData.donorName,
+          amount: validatedData.amount,
+          currency: validatedData.currency,
+          message: validatedData.message,
+          trackRequest: validatedData.trackRequest,
+          timestamp: Date.now(),
+        }
+
+        const sent = AlertEventManager.sendAlert(alertSettings.alertToken, alertData)
+        console.log(sent ? "✅ Alert sent successfully" : "⚠️ No active alert connections")
+      } else {
+        console.log("⚠️ Alert not sent: settings not found or amount below minimum")
+      }
+    } catch (alertError) {
+      // Не падаем если alert не отправился
+      console.error("❌ Error sending alert:", alertError)
+    }
 
     return NextResponse.json({
       success: true,
