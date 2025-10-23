@@ -56,9 +56,10 @@ export default function LoginPage() {
 
       localStorage.setItem("username", formData.username)
 
+      // Используем полный reload вместо router.push чтобы браузер получил cookie
       setTimeout(() => {
-        router.push("/")
-      }, 1500)
+        window.location.href = "/"
+      }, 1000)
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred."
 

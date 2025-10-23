@@ -248,10 +248,7 @@ export default function RegisterPage() {
                     <div className="flex items-center space-x-2">
                       <Checkbox id="terms" className="border-purple-500 data-[state=checked]:bg-purple-600" />
                       <Label htmlFor="terms" className="text-sm text-purple-300">
-                        I agree to the{" "}
-                        <Link href="/terms" className="text-purple-400 hover:text-purple-300 underline">
-                          Terms & Conditions
-                        </Link>
+                        I agree to the Terms & Conditions
                       </Label>
                     </div>
 
