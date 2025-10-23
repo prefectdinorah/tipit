@@ -21,7 +21,6 @@ export async function GET(request: NextRequest, { params }: { params: { username
         },
         isActive: true,
       },
-      include: { settings: true },
       select: {
         uuid: true,
         username: true,
