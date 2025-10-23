@@ -157,8 +157,26 @@ export default function StreamerDashboard() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("username")
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      })
+
+      localStorage.removeItem("username")
+      
+      // API теперь редиректит сам, но на всякий случай
+      if (response.redirected) {
+        window.location.href = response.url
+      } else {
+        window.location.href = "/auth/login"
+      }
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Даже если API упал, пробуем редиректить
+      window.location.href = "/auth/login"
+    }
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -220,14 +238,13 @@ export default function StreamerDashboard() {
               <Link href="/settings">
                 <Button className="bg-purple-600 hover:bg-purple-700">Settings</Button>
               </Link>
-              <Link href="/auth/login" onClick={handleLogout}>
-                <Button
-                  variant="outline"
-                  className="border-purple-500 text-purple-300 hover:bg-purple-500 hover:text-white bg-transparent"
-                >
-                  Log out
-                </Button>
-              </Link>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="border-purple-500 text-purple-300 hover:bg-purple-500 hover:text-white bg-transparent"
+              >
+                Log out
+              </Button>
             </div>
           </div>
         </div>
