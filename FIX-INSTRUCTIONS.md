@@ -52,7 +52,63 @@ git fetch origin
 
 ---
 
-## 🔴 Проблема 1: MongoDB ошибка "Invalid scheme"
+## 🔴 Проблема 1: Аватары не загружаются (404)
+
+**Ошибка:**
+```
+GET http://45.144.52.219:3001/avatars/xxx.jpg 404 (Not Found)
+```
+
+**Причина:** Папка `/public/avatars/` не создана на сервере
+
+**Решение:**
+
+```bash
+# На сервере
+ssh root@45.144.52.219
+cd /root/tipit/dev
+
+# Создайте папку для аватаров
+mkdir -p public/avatars
+chmod 755 public/avatars
+
+# Проверьте
+ls -la public/
+```
+
+После этого аватары должны загружаться!
+
+---
+
+## 🔴 Проблема 2: Страница стримера не работает (создать StreamerSettings)
+
+**Проблема:** У пользователя нет записи `StreamerSettings` в PostgreSQL
+
+**Решение:**
+
+```bash
+# Подключитесь к PostgreSQL
+psql -h 45.144.52.58 -U streamdonate_user -d streamdonate_db
+
+# Проверьте пользователя
+SELECT id, username, is_active FROM users WHERE username = 'test4';
+
+# Если нет настроек, создайте
+INSERT INTO streamer_settings (user_id) 
+SELECT id FROM users WHERE username = 'test4'
+ON CONFLICT DO NOTHING;
+
+# Проверьте что создалось
+SELECT * FROM streamer_settings WHERE user_id = (SELECT id FROM users WHERE username = 'test4');
+
+\q
+```
+
+Теперь страница `/donate/test4` должна работать!
+
+---
+
+## 🔴 Проблема 3: MongoDB ошибка "Invalid scheme"
 
 **Ошибка в логах:**
 ```
@@ -102,7 +158,7 @@ pm2 logs tipit-dev
 
 ---
 
-## 🔴 Проблема 2: Страница стримера не найдена
+## 🔴 Проблема 4: Страница стримера не найдена (старая проблема)
 
 **Ошибка:** При переходе на `/donate/test4` получаете "Streamer not found"
 
@@ -167,7 +223,7 @@ http://45.144.52.219:3001/donate/test4
 
 ---
 
-## 🔴 Проблема 3: Главная страница доступна без логина
+## 🔴 Проблема 5: Главная страница доступна без логина (решено)
 
 **Текущее поведение:** После сборки сразу попадаете на главную
 
