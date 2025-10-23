@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Удаляем cookie
-    const response = NextResponse.json({ success: true })
+    // Удаляем cookie и редиректим на страницу входа
+    const response = NextResponse.redirect(new URL("/auth/login", request.url))
     response.cookies.delete("session_token")
 
     return response
