@@ -1301,20 +1301,31 @@ export default function SettingsPage() {
                             fontSize: `${alertSettings.fontSize}px`,
                             fontFamily: alertSettings.fontFamily,
                             color: alertSettings.textColor,
-                            textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
                           }}
                         >
-                          Test Donor
-                        </p>
-                        <p className="text-2xl font-bold text-yellow-400" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}>
-                          $50.00
+                          ${alertSettings.minAmount || 10}.00
                         </p>
                         <p
-                          className="text-lg"
+                          className="font-semibold"
                           style={{
+                            fontSize: `${alertSettings.fontSize * 0.6}px`,
                             fontFamily: alertSettings.fontFamily,
                             color: alertSettings.textColor,
-                            textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
+                            opacity: 0.9,
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
+                          }}
+                        >
+                          from Test Donor
+                        </p>
+                        <p
+                          className="text-lg italic"
+                          style={{
+                            fontSize: `${alertSettings.fontSize * 0.5}px`,
+                            fontFamily: alertSettings.fontFamily,
+                            color: alertSettings.textColor,
+                            opacity: 0.8,
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
                           }}
                         >
                           This is a test donation message!

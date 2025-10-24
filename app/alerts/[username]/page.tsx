@@ -140,6 +140,10 @@ export default function AlertWidgetPage() {
 
   const showAlert = async (alert: AlertData) => {
     console.log("🔔 Showing alert:", alert)
+    console.log("🖼️ Settings imageUrl:", settings?.imageUrl)
+    console.log("🖼️ Settings imageEnabled:", settings?.imageEnabled)
+    console.log("🎨 Settings textColor:", settings?.textColor)
+    console.log("📏 Settings fontSize:", settings?.fontSize)
     setIsPlaying(true)
     setCurrentAlert(alert)
 
@@ -264,9 +268,10 @@ export default function AlertWidgetPage() {
               style={{
                 fontSize: `${fontSize}px`,
                 color: textColor,
+                textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
               }}
             >
-              💰 {currencySymbol}{amount.toFixed(2)}
+              {currencySymbol}{amount.toFixed(2)}
             </div>
 
             {/* Donor Name */}
@@ -276,6 +281,7 @@ export default function AlertWidgetPage() {
                 fontSize: `${fontSize * 0.6}px`,
                 color: textColor,
                 opacity: 0.9,
+                textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
               }}
             >
               from {donorName}
@@ -289,9 +295,10 @@ export default function AlertWidgetPage() {
                   fontSize: `${fontSize * 0.5}px`,
                   color: textColor,
                   opacity: 0.8,
+                  textShadow: "2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.3)",
                 }}
               >
-                "{message}"
+                {message}
               </div>
             )}
           </div>
