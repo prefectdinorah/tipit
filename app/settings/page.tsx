@@ -1202,6 +1202,129 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Preview Card */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Live Preview</CardTitle>
+                <CardDescription className="text-purple-300">
+                  See how your alert will look in real-time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative bg-black/50 rounded-lg overflow-hidden" style={{ height: "400px" }}>
+                  {/* Position container */}
+                  <div
+                    className={`absolute w-full flex items-center justify-center ${
+                      alertSettings.position === "top"
+                        ? "top-8"
+                        : alertSettings.position === "bottom"
+                          ? "bottom-8"
+                          : "top-1/2 -translate-y-1/2"
+                    }`}
+                  >
+                    {/* Alert content */}
+                    <div
+                      className="flex flex-col items-center gap-4 px-8 py-6 bg-gradient-to-br from-purple-900/80 to-pink-900/80 backdrop-blur-sm rounded-xl shadow-2xl border border-purple-500/30"
+                      style={{
+                        animation: `${alertSettings.textAnimation} 0.5s ease-out`,
+                      }}
+                    >
+                      {/* Image */}
+                      {alertSettings.imageEnabled && alertSettings.imageUrl && (
+                        <img
+                          src={alertSettings.imageUrl}
+                          alt="Alert"
+                          className="rounded-lg shadow-lg"
+                          style={{
+                            width: `${alertSettings.imageSize}px`,
+                            height: `${alertSettings.imageSize}px`,
+                            objectFit: "cover",
+                          }}
+                        />
+                      )}
+
+                      {/* Text */}
+                      <div className="text-center space-y-2">
+                        <p
+                          className="font-bold"
+                          style={{
+                            fontSize: `${alertSettings.fontSize}px`,
+                            fontFamily: alertSettings.fontFamily,
+                            color: alertSettings.textColor,
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
+                          }}
+                        >
+                          Test Donor
+                        </p>
+                        <p className="text-2xl font-bold text-yellow-400" style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}>
+                          $50.00
+                        </p>
+                        <p
+                          className="text-lg"
+                          style={{
+                            fontFamily: alertSettings.fontFamily,
+                            color: alertSettings.textColor,
+                            textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
+                          }}
+                        >
+                          This is a test donation message!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-xs text-purple-300">
+                    <span>Duration: {alertSettings.duration}s</span>
+                    <span>Animation: {alertSettings.textAnimation}</span>
+                    <span>Min: ${alertSettings.minAmount}</span>
+                  </div>
+                </div>
+
+                {/* Animation CSS */}
+                <style jsx>{`
+                  @keyframes fade {
+                    from {
+                      opacity: 0;
+                    }
+                    to {
+                      opacity: 1;
+                    }
+                  }
+                  @keyframes slide {
+                    from {
+                      transform: translateX(-100%);
+                      opacity: 0;
+                    }
+                    to {
+                      transform: translateX(0);
+                      opacity: 1;
+                    }
+                  }
+                  @keyframes bounce {
+                    0%,
+                    100% {
+                      transform: translateY(0);
+                      opacity: 1;
+                    }
+                    50% {
+                      transform: translateY(-20px);
+                    }
+                  }
+                  @keyframes zoom {
+                    from {
+                      transform: scale(0);
+                      opacity: 0;
+                    }
+                    to {
+                      transform: scale(1);
+                      opacity: 1;
+                    }
+                  }
+                `}</style>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Appearance Tab */}
