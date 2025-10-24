@@ -240,7 +240,7 @@ export default function AlertWidgetPage() {
   return (
     <div className={`fixed inset-0 flex items-center ${positionClasses[position as keyof typeof positionClasses] || positionClasses.center} pointer-events-none`}>
       <div
-        className={`${animationClasses[textAnimation as keyof typeof animationClasses] || animationClasses.slide} bg-gradient-to-r from-purple-900/90 to-pink-900/90 backdrop-blur-md rounded-2xl shadow-2xl border-4 border-purple-500/50 p-8 max-w-2xl mx-auto`}
+        className={`${animationClasses[textAnimation as keyof typeof animationClasses] || animationClasses.slide} max-w-2xl mx-auto`}
         style={{ fontFamily }}
       >
         <div className="flex items-center gap-6">

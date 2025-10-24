@@ -1273,7 +1273,8 @@ export default function SettingsPage() {
                   >
                     {/* Alert content */}
                     <div
-                      className="flex flex-col items-center gap-4 px-8 py-6 bg-gradient-to-br from-purple-900/80 to-pink-900/80 backdrop-blur-sm rounded-xl shadow-2xl border border-purple-500/30"
+                      key={`${alertSettings.textAnimation}-${alertSettings.fontSize}-${alertSettings.imageUrl}`}
+                      className="flex flex-col items-center gap-4"
                       style={{
                         animation: `${alertSettings.textAnimation} 0.5s ease-out`,
                       }}

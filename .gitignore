@@ -30,6 +30,7 @@ README-CHANGES.md
 # nginx configs (server-specific)
 nginx/*.conf
 
+*.md
 
 # vercel
 .vercel
