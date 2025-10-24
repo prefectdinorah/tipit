@@ -344,10 +344,14 @@ export default function SettingsPage() {
       const data = await response.json()
       updateAlertSetting("soundUrl", data.url)
 
+      // Автосохранение после загрузки
+      const updatedSettings = { ...alertSettings, soundUrl: data.url }
+      await saveAlertSettingsToServer(updatedSettings)
+
       toast({
         type: "success",
-        title: "Sound Uploaded",
-        description: "Custom sound has been uploaded successfully!",
+        title: "Sound Uploaded & Saved",
+        description: "Custom sound has been uploaded and saved successfully!",
       })
     } catch (error) {
       toast({
@@ -402,10 +406,14 @@ export default function SettingsPage() {
       const data = await response.json()
       updateAlertSetting("imageUrl", data.url)
 
+      // Автосохранение после загрузки
+      const updatedSettings = { ...alertSettings, imageUrl: data.url }
+      await saveAlertSettingsToServer(updatedSettings)
+
       toast({
         type: "success",
-        title: "Image Uploaded",
-        description: "Custom image has been uploaded successfully!",
+        title: "Image Uploaded & Saved",
+        description: "Custom image has been uploaded and saved successfully!",
       })
     } catch (error) {
       toast({
@@ -415,6 +423,47 @@ export default function SettingsPage() {
       })
     } finally {
       setIsUploadingImage(false)
+    }
+  }
+
+  // Вспомогательная функция для сохранения на сервер
+  const saveAlertSettingsToServer = async (settings: typeof alertSettings) => {
+    const payload = {
+      fontSize: settings.fontSize,
+      fontFamily: settings.fontFamily,
+      textColor: settings.textColor,
+      textAnimation: settings.textAnimation,
+      duration: settings.duration,
+      position: settings.position,
+      minAmount: Number(settings.minAmount),
+      imageEnabled: settings.imageEnabled,
+      imageUrl: settings.imageUrl,
+      imageSize: settings.imageSize,
+      soundEnabled: settings.soundEnabled,
+      soundUrl: settings.soundUrl,
+      soundVolume: settings.soundVolume,
+      ttsEnabled: settings.ttsEnabled,
+      ttsVoice: settings.ttsVoice,
+      ttsSpeed: settings.ttsSpeed,
+      ttsVolume: settings.ttsVolume,
+    }
+
+    const response = await fetch("/api/alerts/settings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to save alert settings")
+    }
+
+    const data = await response.json()
+    if (data.settings) {
+      setAlertSettings(data.settings)
     }
   }
 
@@ -873,14 +922,27 @@ export default function SettingsPage() {
                   />
                   <Button
                     onClick={() => {
-                      if (alertSettings.alertToken) {
-                        navigator.clipboard.writeText(
-                          `${window.location.origin}/alerts/${settings.username}?token=${alertSettings.alertToken}`,
-                        )
-                        toast({
-                          type: "success",
-                          title: "Copied!",
-                          description: "Widget URL copied to clipboard",
+                      if (alertSettings.alertToken && typeof window !== 'undefined' && navigator?.clipboard) {
+                        const url = `${window.location.origin}/alerts/${settings.username}?token=${alertSettings.alertToken}`
+                        navigator.clipboard.writeText(url).then(() => {
+                          toast({
+                            type: "success",
+                            title: "Copied!",
+                            description: "Widget URL copied to clipboard",
+                          })
+                        }).catch(() => {
+                          // Fallback для старых браузеров
+                          const input = document.createElement('input')
+                          input.value = url
+                          document.body.appendChild(input)
+                          input.select()
+                          document.execCommand('copy')
+                          document.body.removeChild(input)
+                          toast({
+                            type: "success",
+                            title: "Copied!",
+                            description: "Widget URL copied to clipboard",
+                          })
                         })
                       }
                     }}
