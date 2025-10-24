@@ -243,18 +243,46 @@ export default function SettingsPage() {
     setIsSaving(true)
 
     try {
+      // Отправляем только нужные поля (без id, userId, createdAt, updatedAt, alertToken)
+      const payload = {
+        fontSize: alertSettings.fontSize,
+        fontFamily: alertSettings.fontFamily,
+        textColor: alertSettings.textColor,
+        textAnimation: alertSettings.textAnimation,
+        duration: alertSettings.duration,
+        position: alertSettings.position,
+        minAmount: Number(alertSettings.minAmount), // Конвертируем в number
+        imageEnabled: alertSettings.imageEnabled,
+        imageUrl: alertSettings.imageUrl,
+        imageSize: alertSettings.imageSize,
+        soundEnabled: alertSettings.soundEnabled,
+        soundUrl: alertSettings.soundUrl,
+        soundVolume: alertSettings.soundVolume,
+        ttsEnabled: alertSettings.ttsEnabled,
+        ttsVoice: alertSettings.ttsVoice,
+        ttsSpeed: alertSettings.ttsSpeed,
+        ttsVolume: alertSettings.ttsVolume,
+      }
+
       const response = await fetch("/api/alerts/settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(alertSettings),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || "Failed to save alert settings")
+      }
+
+      const data = await response.json()
+      
+      // Обновляем state с данными с сервера (включая alertToken если был создан)
+      if (data.settings) {
+        setAlertSettings(data.settings)
       }
 
       setHasChanges(false)
@@ -1046,21 +1074,33 @@ export default function SettingsPage() {
                   />
                   <div
                     onClick={() => !isUploadingImage && document.getElementById("image-upload")?.click()}
-                    className="border-2 border-dashed border-purple-800/30 rounded-lg p-8 text-center hover:border-purple-600/50 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-purple-800/30 rounded-lg overflow-hidden hover:border-purple-600/50 transition-colors cursor-pointer"
                   >
                     {isUploadingImage ? (
-                      <>
+                      <div className="p-8 text-center">
                         <Loader2 className="h-12 w-12 mx-auto mb-4 text-purple-400 animate-spin" />
                         <p className="text-white mb-2">Uploading...</p>
-                      </>
+                      </div>
+                    ) : alertSettings.imageUrl ? (
+                      <div className="relative group">
+                        <img
+                          src={alertSettings.imageUrl}
+                          alt="Current alert image"
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="text-center">
+                            <Upload className="h-8 w-8 mx-auto mb-2 text-white" />
+                            <p className="text-white font-medium">Click to change</p>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                      <>
+                      <div className="p-8 text-center">
                         <Upload className="h-12 w-12 mx-auto mb-4 text-purple-400" />
-                        <p className="text-white mb-2">
-                          {alertSettings.imageUrl ? "Image uploaded - Click to change" : "Click to upload"}
-                        </p>
+                        <p className="text-white mb-2">Click to upload</p>
                         <p className="text-purple-300 text-sm">PNG, JPG, GIF up to 10MB</p>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1116,10 +1156,18 @@ export default function SettingsPage() {
                     ) : (
                       <>
                         <Music className="h-12 w-12 mx-auto mb-4 text-purple-400" />
-                        <p className="text-white mb-2">
-                          {alertSettings.soundUrl ? "Sound uploaded - Click to change" : "Click to upload"}
-                        </p>
-                        <p className="text-purple-300 text-sm">MP3, WAV up to 5MB</p>
+                        {alertSettings.soundUrl ? (
+                          <>
+                            <p className="text-white mb-2 font-medium">Sound uploaded</p>
+                            <p className="text-purple-300 text-sm mb-2">{alertSettings.soundUrl.split("/").pop()}</p>
+                            <p className="text-purple-400 text-xs">Click to change</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-white mb-2">Click to upload</p>
+                            <p className="text-purple-300 text-sm">MP3, WAV up to 5MB</p>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
