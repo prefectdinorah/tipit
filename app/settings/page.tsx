@@ -57,12 +57,62 @@ interface Settings {
   accentColor: string
 }
 
+interface AlertSettings {
+  alertToken: string
+  // Text
+  fontSize: number
+  fontFamily: string
+  textColor: string
+  textAnimation: string
+  // Display
+  duration: number
+  position: string
+  minAmount: number
+  // Image
+  imageEnabled: boolean
+  imageUrl: string | null
+  imageSize: number
+  // Sound
+  soundEnabled: boolean
+  soundUrl: string | null
+  soundVolume: number
+  // TTS
+  ttsEnabled: boolean
+  ttsVoice: string
+  ttsSpeed: number
+  ttsVolume: number
+}
+
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false)
+  const [isUploadingSound, setIsUploadingSound] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+  const [alertSettings, setAlertSettings] = useState<AlertSettings>({
+    alertToken: "",
+    fontSize: 40,
+    fontFamily: "Roboto",
+    textColor: "#ffffff",
+    textAnimation: "slide",
+    duration: 5,
+    position: "center",
+    minAmount: 1,
+    imageEnabled: true,
+    imageUrl: null,
+    imageSize: 200,
+    soundEnabled: true,
+    soundUrl: null,
+    soundVolume: 75,
+    ttsEnabled: false,
+    ttsVoice: "en-US",
+    ttsSpeed: 1.0,
+    ttsVolume: 80,
+  })
 
   const [settings, setSettings] = useState<Settings>({
     displayName: "",
@@ -90,6 +140,7 @@ export default function SettingsPage() {
   // Загружаем настройки
   useEffect(() => {
     loadSettings()
+    loadAlertSettings()
   }, [])
 
   const loadSettings = async () => {
@@ -156,6 +207,187 @@ export default function SettingsPage() {
   const updateSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }))
     setHasChanges(true)
+  }
+
+  const loadAlertSettings = async () => {
+    try {
+      setIsLoadingAlerts(true)
+      const response = await fetch("/api/alerts/settings", {
+        credentials: "include",
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.settings) {
+          setAlertSettings(data.settings)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load alert settings:", error)
+      toast({
+        type: "error",
+        title: "Load Failed",
+        description: "Failed to load alert settings",
+      })
+    } finally {
+      setIsLoadingAlerts(false)
+    }
+  }
+
+  const updateAlertSetting = <K extends keyof AlertSettings>(key: K, value: AlertSettings[K]) => {
+    setAlertSettings((prev) => ({ ...prev, [key]: value }))
+    setHasChanges(true)
+  }
+
+  const handleSaveAlertSettings = async () => {
+    setIsSaving(true)
+
+    try {
+      const response = await fetch("/api/alerts/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(alertSettings),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to save alert settings")
+      }
+
+      setHasChanges(false)
+      toast({
+        type: "success",
+        title: "Alert Settings Saved",
+        description: "Your alert settings have been saved successfully!",
+      })
+    } catch (error) {
+      toast({
+        type: "error",
+        title: "Save Failed",
+        description: error instanceof Error ? error.message : "Failed to save alert settings",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSoundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("audio/")) {
+      toast({
+        type: "error",
+        title: "Invalid File",
+        description: "Please upload an audio file (MP3, WAV, etc.)",
+      })
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        type: "error",
+        title: "File Too Large",
+        description: "Sound file must be less than 5MB",
+      })
+      return
+    }
+
+    setIsUploadingSound(true)
+
+    try {
+      const formData = new FormData()
+      formData.append("sound", file)
+
+      const response = await fetch("/api/alerts/upload/sound", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to upload sound")
+      }
+
+      const data = await response.json()
+      updateAlertSetting("soundUrl", data.url)
+
+      toast({
+        type: "success",
+        title: "Sound Uploaded",
+        description: "Custom sound has been uploaded successfully!",
+      })
+    } catch (error) {
+      toast({
+        type: "error",
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload sound",
+      })
+    } finally {
+      setIsUploadingSound(false)
+    }
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        type: "error",
+        title: "Invalid File",
+        description: "Please upload an image file (JPG, PNG, GIF, etc.)",
+      })
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        type: "error",
+        title: "File Too Large",
+        description: "Image file must be less than 10MB",
+      })
+      return
+    }
+
+    setIsUploadingImage(true)
+
+    try {
+      const formData = new FormData()
+      formData.append("image", file)
+
+      const response = await fetch("/api/alerts/upload/image", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to upload image")
+      }
+
+      const data = await response.json()
+      updateAlertSetting("imageUrl", data.url)
+
+      toast({
+        type: "success",
+        title: "Image Uploaded",
+        description: "Custom image has been uploaded successfully!",
+      })
+    } catch (error) {
+      toast({
+        type: "error",
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload image",
+      })
+    } finally {
+      setIsUploadingImage(false)
+    }
   }
 
   const handleSaveSettings = async () => {
@@ -589,66 +821,382 @@ export default function SettingsPage() {
 
           {/* Alerts Tab */}
           <TabsContent value="alerts" className="space-y-6">
+            {/* Widget URL Card */}
             <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white">Alert Settings</CardTitle>
+                <CardTitle className="text-white flex items-center">
+                  <Bell className="h-5 w-5 mr-2 text-purple-400" />
+                  OBS Widget URL
+                </CardTitle>
                 <CardDescription className="text-purple-300">
-                  Customize donation alerts and notifications
+                  Copy this URL and add it as a Browser Source in OBS
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={
+                      alertSettings.alertToken
+                        ? `${window.location.origin}/alerts/${settings.username}?token=${alertSettings.alertToken}`
+                        : "Loading..."
+                    }
+                    readOnly
+                    className="bg-slate-700/50 border-purple-800/30 text-white font-mono text-sm"
+                  />
+                  <Button
+                    onClick={() => {
+                      if (alertSettings.alertToken) {
+                        navigator.clipboard.writeText(
+                          `${window.location.origin}/alerts/${settings.username}?token=${alertSettings.alertToken}`,
+                        )
+                        toast({
+                          type: "success",
+                          title: "Copied!",
+                          description: "Widget URL copied to clipboard",
+                        })
+                      }
+                    }}
+                    disabled={!alertSettings.alertToken}
+                    className="bg-purple-600 hover:bg-purple-700 shrink-0"
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch("/api/alerts/test", {
+                          method: "POST",
+                          credentials: "include",
+                        })
+                        if (response.ok) {
+                          toast({
+                            type: "success",
+                            title: "Test Alert Sent!",
+                            description: "Check your OBS to see the alert",
+                          })
+                        } else {
+                          throw new Error("Failed to send test alert")
+                        }
+                      } catch (error) {
+                        toast({
+                          type: "error",
+                          title: "Failed",
+                          description: "Could not send test alert",
+                        })
+                      }
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Bell className="h-4 w-4 mr-2" />
+                    Send Test Alert
+                  </Button>
+                  <Button variant="outline" className="border-purple-800/30 text-purple-300 hover:text-white">
+                    <Upload className="h-4 w-4 mr-2" />
+                    View Setup Guide
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Text Settings */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Text Settings</CardTitle>
+                <CardDescription className="text-purple-300">
+                  Customize the appearance of alert text
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-purple-300">Font Family</Label>
+                    <Select
+                      value={alertSettings.fontFamily}
+                      onValueChange={(value) => updateAlertSetting("fontFamily", value)}
+                    >
+                      <SelectTrigger className="mt-1 bg-slate-700/50 border-purple-800/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-purple-800/30">
+                        <SelectItem value="Roboto">Roboto</SelectItem>
+                        <SelectItem value="Arial">Arial</SelectItem>
+                        <SelectItem value="Impact">Impact</SelectItem>
+                        <SelectItem value="Comic Sans MS">Comic Sans MS</SelectItem>
+                        <SelectItem value="Courier New">Courier New</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-purple-300">Font Size: {alertSettings.fontSize}px</Label>
+                    <Slider
+                      value={[alertSettings.fontSize]}
+                      onValueChange={(value) => updateAlertSetting("fontSize", value[0])}
+                      max={100}
+                      min={20}
+                      step={5}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-purple-300">Text Color</Label>
+                    <Input
+                      type="color"
+                      value={alertSettings.textColor}
+                      onChange={(e) => updateAlertSetting("textColor", e.target.value)}
+                      className="mt-1 h-12 bg-slate-700/50 border-purple-800/30"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-purple-300">Animation</Label>
+                    <Select
+                      value={alertSettings.textAnimation}
+                      onValueChange={(value) => updateAlertSetting("textAnimation", value)}
+                    >
+                      <SelectTrigger className="mt-1 bg-slate-700/50 border-purple-800/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-purple-800/30">
+                        <SelectItem value="fade">Fade</SelectItem>
+                        <SelectItem value="slide">Slide</SelectItem>
+                        <SelectItem value="bounce">Bounce</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Display Settings */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Display Settings</CardTitle>
+                <CardDescription className="text-purple-300">Configure alert display behavior</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-purple-300">Duration: {alertSettings.duration} seconds</Label>
+                    <Slider
+                      value={[alertSettings.duration]}
+                      onValueChange={(value: number[]) => updateAlertSetting("duration", value[0])}
+                      max={30}
+                      min={3}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-purple-300">Position</Label>
+                    <Select
+                      value={alertSettings.position}
+                      onValueChange={(value: string) => updateAlertSetting("position", value)}
+                    >
+                      <SelectTrigger className="mt-1 bg-slate-700/50 border-purple-800/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-purple-800/30">
+                        <SelectItem value="top">Top</SelectItem>
+                        <SelectItem value="center">Center</SelectItem>
+                        <SelectItem value="bottom">Bottom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-purple-300">Minimum Amount: ${alertSettings.minAmount}</Label>
+                    <Slider
+                      value={[alertSettings.minAmount]}
+                      onValueChange={(value: number[]) => updateAlertSetting("minAmount", value[0])}
+                      max={50}
+                      min={1}
+                      step={1}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Image Settings */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Image Settings</CardTitle>
+                <CardDescription className="text-purple-300">Configure alert images and GIFs</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-white">Enable Image</Label>
+                  <Switch
+                    checked={alertSettings.imageEnabled}
+                    onCheckedChange={(checked: boolean) => updateAlertSetting("imageEnabled", checked)}
+                  />
+                </div>
+
                 <div>
-                  <Label className="text-purple-300">Alert Volume: {settings.alertVolume}%</Label>
+                  <Label className="text-purple-300 mb-2 block">Upload Custom Image/GIF</Label>
+                  <input
+                    type="file"
+                    id="image-upload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={isUploadingImage}
+                  />
+                  <div
+                    onClick={() => !isUploadingImage && document.getElementById("image-upload")?.click()}
+                    className="border-2 border-dashed border-purple-800/30 rounded-lg p-8 text-center hover:border-purple-600/50 transition-colors cursor-pointer"
+                  >
+                    {isUploadingImage ? (
+                      <>
+                        <Loader2 className="h-12 w-12 mx-auto mb-4 text-purple-400 animate-spin" />
+                        <p className="text-white mb-2">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-12 w-12 mx-auto mb-4 text-purple-400" />
+                        <p className="text-white mb-2">
+                          {alertSettings.imageUrl ? "Image uploaded - Click to change" : "Click to upload"}
+                        </p>
+                        <p className="text-purple-300 text-sm">PNG, JPG, GIF up to 10MB</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-purple-300">Image Size: {alertSettings.imageSize}px</Label>
                   <Slider
-                    value={[settings.alertVolume]}
-                    onValueChange={(value) => updateSetting("alertVolume", value[0])}
+                    value={[alertSettings.imageSize]}
+                    onValueChange={(value: number[]) => updateAlertSetting("imageSize", value[0])}
+                    max={500}
+                    min={50}
+                    step={10}
+                    className="mt-2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sound Settings */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Sound Settings</CardTitle>
+                <CardDescription className="text-purple-300">Configure alert sounds</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-white">Enable Sound</Label>
+                  <Switch
+                    checked={alertSettings.soundEnabled}
+                    onCheckedChange={(checked: boolean) => updateAlertSetting("soundEnabled", checked)}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-purple-300 mb-2 block">Upload Custom Sound</Label>
+                  <input
+                    type="file"
+                    id="sound-upload"
+                    accept="audio/*"
+                    onChange={handleSoundUpload}
+                    className="hidden"
+                    disabled={isUploadingSound}
+                  />
+                  <div
+                    onClick={() => !isUploadingSound && document.getElementById("sound-upload")?.click()}
+                    className="border-2 border-dashed border-purple-800/30 rounded-lg p-8 text-center hover:border-purple-600/50 transition-colors cursor-pointer"
+                  >
+                    {isUploadingSound ? (
+                      <>
+                        <Loader2 className="h-12 w-12 mx-auto mb-4 text-purple-400 animate-spin" />
+                        <p className="text-white mb-2">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Music className="h-12 w-12 mx-auto mb-4 text-purple-400" />
+                        <p className="text-white mb-2">
+                          {alertSettings.soundUrl ? "Sound uploaded - Click to change" : "Click to upload"}
+                        </p>
+                        <p className="text-purple-300 text-sm">MP3, WAV up to 5MB</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-purple-300">Volume: {alertSettings.soundVolume}%</Label>
+                  <Slider
+                    value={[alertSettings.soundVolume]}
+                    onValueChange={(value: number[]) => updateAlertSetting("soundVolume", value[0])}
                     max={100}
                     min={0}
                     step={5}
                     className="mt-2"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* TTS Settings */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white">Text-to-Speech Settings</CardTitle>
+                <CardDescription className="text-purple-300">Configure voice reading of donation messages</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-white">Enable TTS</Label>
+                    <p className="text-purple-300 text-sm mt-1">Reads donation messages aloud</p>
+                  </div>
+                  <Switch
+                    checked={alertSettings.ttsEnabled}
+                    onCheckedChange={(checked: boolean) => updateAlertSetting("ttsEnabled", checked)}
+                  />
+                </div>
 
                 <div>
-                  <Label htmlFor="alertDuration" className="text-purple-300">
-                    Alert Duration (seconds)
-                  </Label>
+                  <Label className="text-purple-300">Voice</Label>
                   <Select
-                    value={settings.alertDuration.toString()}
-                    onValueChange={(value) => updateSetting("alertDuration", Number(value))}
+                    value={alertSettings.ttsVoice}
+                    onValueChange={(value: string) => updateAlertSetting("ttsVoice", value)}
                   >
                     <SelectTrigger className="mt-1 bg-slate-700/50 border-purple-800/30 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-purple-800/30">
-                      <SelectItem value="3">3 seconds</SelectItem>
-                      <SelectItem value="5">5 seconds</SelectItem>
-                      <SelectItem value="10">10 seconds</SelectItem>
-                      <SelectItem value="15">15 seconds</SelectItem>
+                      <SelectItem value="en-US">English (US)</SelectItem>
+                      <SelectItem value="en-GB">English (UK)</SelectItem>
+                      <SelectItem value="ru-RU">Russian</SelectItem>
+                      <SelectItem value="es-ES">Spanish</SelectItem>
+                      <SelectItem value="fr-FR">French</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-white">Sound Alerts</Label>
-                    <Switch
-                      checked={settings.soundAlertEnabled}
-                      onCheckedChange={(checked) => updateSetting("soundAlertEnabled", checked)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-purple-300">Speed: {alertSettings.ttsSpeed.toFixed(1)}x</Label>
+                    <Slider
+                      value={[alertSettings.ttsSpeed]}
+                      onValueChange={(value: number[]) => updateAlertSetting("ttsSpeed", value[0])}
+                      max={2.0}
+                      min={0.5}
+                      step={0.1}
+                      className="mt-2"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-white">Visual Alerts</Label>
-                    <Switch
-                      checked={settings.visualAlertEnabled}
-                      onCheckedChange={(checked) => updateSetting("visualAlertEnabled", checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-white">Text-to-Speech</Label>
-                    <Switch
-                      checked={settings.ttsEnabled}
-                      onCheckedChange={(checked) => updateSetting("ttsEnabled", checked)}
+                  <div>
+                    <Label className="text-purple-300">Volume: {alertSettings.ttsVolume}%</Label>
+                    <Slider
+                      value={[alertSettings.ttsVolume]}
+                      onValueChange={(value: number[]) => updateAlertSetting("ttsVolume", value[0])}
+                      max={100}
+                      min={0}
+                      step={5}
+                      className="mt-2"
                     />
                   </div>
                 </div>
@@ -739,23 +1287,42 @@ export default function SettingsPage() {
         <div className="flex justify-between items-center mt-8">
           {hasChanges && <p className="text-purple-300 text-sm">You have unsaved changes</p>}
           <div className="flex-1" />
-          <Button
-            onClick={handleSaveSettings}
-            disabled={isSaving || !hasChanges}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save All Changes
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSaveAlertSettings}
+              disabled={isSaving || !hasChanges}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Save Alert Settings
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleSaveSettings}
+              disabled={isSaving || !hasChanges}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save All Settings
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
