@@ -717,13 +717,6 @@ export default function SettingsPage() {
               <Shield className="h-4 w-4 mr-2" />
               Security
             </TabsTrigger>
-            <TabsTrigger
-              value="integrations"
-              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-white/90 hover:text-white"
-            >
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Integrations
-            </TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -842,6 +835,103 @@ export default function SettingsPage() {
                     rows={4}
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Twitch Integration Card */}
+            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <Twitch className="h-5 w-5 mr-2 text-purple-500" />
+                  Twitch Integration
+                </CardTitle>
+                <CardDescription className="text-purple-300">
+                  Connect your Twitch account to show live status on your donation page
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {settings.twitchUsername ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                          <Twitch className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{settings.twitchUsername}</p>
+                          <p className="text-purple-300 text-sm">Connected</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch("/api/twitch/disconnect", {
+                              method: "POST",
+                              credentials: "include",
+                            })
+                            if (response.ok) {
+                              setSettings((prev: any) => ({
+                                ...prev,
+                                twitchUsername: null,
+                                twitchId: null,
+                                isLive: false,
+                              }))
+                              toast({
+                                type: "success",
+                                title: "Disconnected",
+                                description: "Twitch account has been disconnected",
+                              })
+                            }
+                          } catch (error) {
+                            toast({
+                              type: "error",
+                              title: "Error",
+                              description: "Failed to disconnect Twitch",
+                            })
+                          }
+                        }}
+                        variant="outline"
+                        className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                      >
+                        Disconnect
+                      </Button>
+                    </div>
+                    
+                    {settings.isLive && (
+                      <div className="flex items-center space-x-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                        <p className="text-white font-medium">You are currently LIVE on Twitch</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-purple-300">
+                      Connect your Twitch account to automatically show your live status on your donation page.
+                    </p>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch("/api/twitch/auth")
+                          const data = await response.json()
+                          if (data.url) {
+                            window.location.href = data.url
+                          }
+                        } catch (error) {
+                          toast({
+                            type: "error",
+                            title: "Error",
+                            description: "Failed to initiate Twitch OAuth",
+                          })
+                        }
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Twitch className="h-4 w-4 mr-2" />
+                      Connect Twitch Account
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1560,105 +1650,6 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-purple-300">Security settings coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Integrations Tab */}
-          <TabsContent value="integrations" className="space-y-6">
-            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Twitch className="h-5 w-5 mr-2 text-purple-500" />
-                  Twitch Integration
-                </CardTitle>
-                <CardDescription className="text-purple-300">
-                  Connect your Twitch account to show live status on your donation page
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {settings.twitchUsername ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                          <Twitch className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">{settings.twitchUsername}</p>
-                          <p className="text-purple-300 text-sm">Connected</p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={async () => {
-                          try {
-                            const response = await fetch("/api/twitch/disconnect", {
-                              method: "POST",
-                              credentials: "include",
-                            })
-                            if (response.ok) {
-                              setSettings((prev: any) => ({
-                                ...prev,
-                                twitchUsername: null,
-                                twitchId: null,
-                                isLive: false,
-                              }))
-                              toast({
-                                type: "success",
-                                title: "Disconnected",
-                                description: "Twitch account has been disconnected",
-                              })
-                            }
-                          } catch (error) {
-                            toast({
-                              type: "error",
-                              title: "Error",
-                              description: "Failed to disconnect Twitch",
-                            })
-                          }
-                        }}
-                        variant="outline"
-                        className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                      >
-                        Disconnect
-                      </Button>
-                    </div>
-                    
-                    {settings.isLive && (
-                      <div className="flex items-center space-x-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <p className="text-white font-medium">You are currently LIVE on Twitch</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-purple-300">
-                      Connect your Twitch account to automatically show your live status on your donation page.
-                    </p>
-                    <Button
-                      onClick={async () => {
-                        try {
-                          const response = await fetch("/api/twitch/auth")
-                          const data = await response.json()
-                          if (data.url) {
-                            window.location.href = data.url
-                          }
-                        } catch (error) {
-                          toast({
-                            type: "error",
-                            title: "Error",
-                            description: "Failed to initiate Twitch OAuth",
-                          })
-                        }
-                      }}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      <Twitch className="h-4 w-4 mr-2" />
-                      Connect Twitch Account
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
