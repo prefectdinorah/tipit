@@ -418,11 +418,15 @@ export default function SettingsPage() {
 
       const data = await response.json()
       
+      console.log('🖼️ Image uploaded:', data.url)
+      
       // Сразу сохраняем в БД с новым imageUrl
       const updatedSettings = {
         ...alertSettings,
         imageUrl: data.url,
       }
+      
+      console.log('💾 Saving to server:', { imageUrl: updatedSettings.imageUrl })
       
       await saveAlertSettingsToServer(updatedSettings)
       
@@ -466,6 +470,8 @@ export default function SettingsPage() {
       ttsSpeed: settings.ttsSpeed,
       ttsVolume: settings.ttsVolume,
     }
+    
+    console.log('📤 Payload to server:', payload)
 
     const response = await fetch("/api/alerts/settings", {
       method: "POST",
@@ -481,6 +487,8 @@ export default function SettingsPage() {
     }
 
     const data = await response.json()
+    console.log('✅ Server response:', data)
+    
     if (data.settings) {
       setAlertSettings(data.settings)
     }
