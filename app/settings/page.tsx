@@ -350,16 +350,20 @@ export default function SettingsPage() {
 
       const data = await response.json()
       
+      console.log('🔊 Sound uploaded:', data.soundUrl)
+      
       // Сразу сохраняем в БД с новым soundUrl
       const updatedSettings = {
         ...alertSettings,
-        soundUrl: data.url,
+        soundUrl: data.soundUrl,
       }
+      
+      console.log('💾 Saving to server:', { soundUrl: updatedSettings.soundUrl })
       
       await saveAlertSettingsToServer(updatedSettings)
       
       // Обновляем локальный state после успешного сохранения
-      updateAlertSetting("soundUrl", data.url)
+      updateAlertSetting("soundUrl", data.soundUrl)
 
       toast({
         type: "success",
@@ -418,12 +422,12 @@ export default function SettingsPage() {
 
       const data = await response.json()
       
-      console.log('🖼️ Image uploaded:', data.url)
+      console.log('🖼️ Image uploaded:', data.imageUrl)
       
       // Сразу сохраняем в БД с новым imageUrl
       const updatedSettings = {
         ...alertSettings,
-        imageUrl: data.url,
+        imageUrl: data.imageUrl,
       }
       
       console.log('💾 Saving to server:', { imageUrl: updatedSettings.imageUrl })
@@ -431,7 +435,7 @@ export default function SettingsPage() {
       await saveAlertSettingsToServer(updatedSettings)
       
       // Обновляем локальный state после успешного сохранения
-      updateAlertSetting("imageUrl", data.url)
+      updateAlertSetting("imageUrl", data.imageUrl)
 
       toast({
         type: "success",
