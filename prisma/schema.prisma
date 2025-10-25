@@ -23,6 +23,14 @@ model User {
   isActive      Boolean   @default(true) @map("is_active")
   isVerified    Boolean   @default(false) @map("is_verified")
   isPremium     Boolean   @default(false) @map("is_premium")
+  
+  // Twitch integration
+  twitchId      String?   @unique @map("twitch_id")
+  twitchUsername String?  @map("twitch_username")
+  twitchAccessToken String? @map("twitch_access_token")
+  twitchRefreshToken String? @map("twitch_refresh_token")
+  twitchTokenExpiresAt DateTime? @map("twitch_token_expires_at")
+  isLive        Boolean   @default(false) @map("is_live")
 
   settings      StreamerSettings?
   sessions      Session[]
