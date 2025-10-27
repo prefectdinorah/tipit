@@ -3,8 +3,16 @@ import { readFile } from "fs/promises"
 import { join } from "path"
 import { existsSync } from "fs"
 
-// GET /api/alerts/files/images/filename.jpg
-// GET /api/alerts/files/sounds/filename.mp3
+/**
+ * API Route для раздачи статических файлов алертов (картинки и звуки)
+ * 
+ * Endpoints:
+ * - GET /api/alerts/files/images/filename.jpg
+ * - GET /api/alerts/files/sounds/filename.mp3
+ * 
+ * Причина: Next.js не раздаёт файлы из /public/alerts/ напрямую,
+ * поэтому создан отдельный API route с проверкой безопасности
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
