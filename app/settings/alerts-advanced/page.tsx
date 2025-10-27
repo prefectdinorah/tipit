@@ -191,12 +191,16 @@ export default function AlertsAdvancedPage() {
         readMessage: settings.readMessage,
       }
 
+      console.log("💾 Saving settings payload:", payload)
+
       const response = await fetch("/api/alerts/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(payload),
       })
+
+      console.log("📡 Response status:", response.status)
 
       if (response.ok) {
         toast({
@@ -205,7 +209,9 @@ export default function AlertsAdvancedPage() {
           description: "Настройки алертов обновлены",
         })
       } else {
-        throw new Error("Failed to save")
+        const errorData = await response.json().catch(() => ({}))
+        console.error("❌ Save failed:", errorData)
+        throw new Error(errorData.error || "Failed to save")
       }
     } catch (error) {
       console.error("Save error:", error)
