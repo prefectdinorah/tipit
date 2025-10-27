@@ -16,23 +16,22 @@ type AlertFinalPreviewProps = {
 
 export default function AlertFinalPreview({ settings, donation, show }: AlertFinalPreviewProps) {
   const [isVisible, setIsVisible] = useState(false)
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     if (show) {
       setIsVisible(true)
 
       // Play sound
+      let audio: HTMLAudioElement | null = null
       if (settings.enableSound && settings.soundUrl) {
         const soundUrl = settings.soundUrl.startsWith('/alerts/') 
           ? `/api/alerts/files${settings.soundUrl.replace('/alerts/', '/')}` 
           : settings.soundUrl
-        const audio = new Audio(soundUrl)
+        audio = new Audio(soundUrl)
         audio.volume = settings.soundVolume / 100
         audio.play().catch(() => {
           console.log("Sound playback failed")
         })
-        setAudioElement(audio)
       }
 
       // TTS
@@ -58,9 +57,10 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
 
       return () => {
         clearTimeout(timer)
-        if (audioElement) {
-          audioElement.pause()
-          audioElement.currentTime = 0
+        if (audio) {
+          audio.pause()
+          audio.src = "" // Освобождаем ресурсы
+          audio = null
         }
         if ("speechSynthesis" in window) {
           window.speechSynthesis.cancel()
@@ -69,7 +69,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
     } else {
       setIsVisible(false)
     }
-  }, [show, settings, donation, audioElement])
+  }, [show, settings, donation])
 
   const formatMessage = () => {
     return settings.messageTemplate
