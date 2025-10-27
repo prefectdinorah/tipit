@@ -39,6 +39,7 @@ model User {
   bannedContent BannedContent[]
   socialLinks   SocialLink[]
   statistics    UserStatistic[]
+  alertPresets  AlertPreset[]
 
   @@map("users")
 }
@@ -241,4 +242,77 @@ model AlertSettings {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("alert_settings")
+}
+
+model AlertPreset {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @map("user_id")
+  
+  // Range settings
+  minAmount             Decimal  @map("min_amount") @db.Decimal(10, 2)
+  maxAmount             Decimal? @map("max_amount") @db.Decimal(10, 2)
+  priority              Int      @default(0)
+  name                  String   @default("Default") @db.VarChar(100)
+  isActive              Boolean  @default(true) @map("is_active")
+  
+  // General settings
+  messageTemplate       String   @default("{name} задонатил {amount}!") @map("message_template")
+  showDonorName         Boolean  @default(true) @map("show_donor_name")
+  
+  // Visual settings
+  animationType         String   @default("slide") @map("animation_type")
+  duration              Int      @default(5)
+  backgroundColor       String   @default("#6366f1") @map("background_color")
+  textColor             String   @default("#ffffff") @map("text_color")
+  transparentBackground Boolean  @default(false) @map("transparent_background")
+  
+  // Header settings
+  headerFontSize        Int      @default(24) @map("header_font_size")
+  headerFontFamily      String   @default("sans-serif") @map("header_font_family")
+  headerPositionX       Int      @default(50) @map("header_position_x")
+  headerPositionY       Int      @default(30) @map("header_position_y")
+  headerWidth           Int      @default(400) @map("header_width")
+  headerHeight          Int      @default(60) @map("header_height")
+  
+  // Message settings
+  messageFontSize       Int      @default(18) @map("message_font_size")
+  messageFontFamily     String   @default("sans-serif") @map("message_font_family")
+  messagePositionX      Int      @default(50) @map("message_position_x")
+  messagePositionY      Int      @default(70) @map("message_position_y")
+  messageWidth          Int      @default(400) @map("message_width")
+  messageHeight         Int      @default(80) @map("message_height")
+  
+  // Image settings
+  enableImage           Boolean  @default(true) @map("enable_image")
+  imageUrl              String?  @map("image_url")
+  imageWidth            Int      @default(80) @map("image_width")
+  imageHeight           Int      @default(80) @map("image_height")
+  imagePositionX        Int      @default(20) @map("image_position_x")
+  imagePositionY        Int      @default(50) @map("image_position_y")
+  imageAsBackground     Boolean  @default(false) @map("image_as_background")
+  
+  // Sound settings
+  enableSound           Boolean  @default(true) @map("enable_sound")
+  soundUrl              String?  @map("sound_url")
+  soundVolume           Int      @default(70) @map("sound_volume")
+  
+  // TTS settings
+  enableTTS             Boolean  @default(false) @map("enable_tts")
+  ttsVoice              String   @default("female") @map("tts_voice")
+  ttsSpeed              Float    @default(1.0) @map("tts_speed") @db.Real
+  ttsVolume             Int      @default(80) @map("tts_volume")
+  readDonorName         Boolean  @default(true) @map("read_donor_name")
+  readAmount            Boolean  @default(true) @map("read_amount")
+  readMessage           Boolean  @default(true) @map("read_message")
+  
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([userId, minAmount, maxAmount])
+  @@index([userId, priority])
+  @@map("alert_presets")
 }
