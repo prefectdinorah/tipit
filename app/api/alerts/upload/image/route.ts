@@ -7,6 +7,8 @@ import { requireAuth } from "@/lib/auth-middleware"
 export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
     console.log("=== IMAGE UPLOAD START ===")
+    console.log("User authenticated:", user?.id, user?.username)
+    
     const formData = await request.formData()
     const file = formData.get("image") as File
 
