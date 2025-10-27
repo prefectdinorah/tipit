@@ -66,28 +66,50 @@ interface Settings {
 
 interface AlertSettings {
   alertToken: string
-  // Text
-  fontSize: number
-  fontFamily: string
-  textColor: string
-  textAnimation: string
-  // Display
-  duration: number
-  position: string
+  // General
   minAmount: number
+  messageTemplate: string
+  showDonorName: boolean
+  // Visual
+  animationType: "fade" | "slide" | "bounce" | "zoom"
+  duration: number
+  backgroundColor: string
+  textColor: string
+  transparentBackground: boolean
+  // Header (template)
+  headerFontSize: number
+  headerFontFamily: string
+  headerPositionX: number
+  headerPositionY: number
+  headerWidth: number
+  headerHeight: number
+  // Message
+  messageFontSize: number
+  messageFontFamily: string
+  messagePositionX: number
+  messagePositionY: number
+  messageWidth: number
+  messageHeight: number
   // Image
-  imageEnabled: boolean
+  enableImage: boolean
   imageUrl: string | null
-  imageSize: number
+  imageWidth: number
+  imageHeight: number
+  imagePositionX: number
+  imagePositionY: number
+  imageAsBackground: boolean
   // Sound
-  soundEnabled: boolean
+  enableSound: boolean
   soundUrl: string | null
   soundVolume: number
   // TTS
-  ttsEnabled: boolean
-  ttsVoice: string
+  enableTTS: boolean
+  ttsVoice: "male" | "female" | "robot"
   ttsSpeed: number
   ttsVolume: number
+  readDonorName: boolean
+  readAmount: boolean
+  readMessage: boolean
 }
 
 export default function SettingsPage() {
@@ -102,23 +124,50 @@ export default function SettingsPage() {
 
   const [alertSettings, setAlertSettings] = useState<AlertSettings>({
     alertToken: "",
-    fontSize: 40,
-    fontFamily: "Roboto",
-    textColor: "#ffffff",
-    textAnimation: "slide",
-    duration: 5,
-    position: "center",
+    // General
     minAmount: 1,
-    imageEnabled: true,
+    messageTemplate: "{name} задонатил {amount}!",
+    showDonorName: true,
+    // Visual
+    animationType: "slide",
+    duration: 5,
+    backgroundColor: "#6366f1",
+    textColor: "#ffffff",
+    transparentBackground: false,
+    // Header
+    headerFontSize: 24,
+    headerFontFamily: "sans-serif",
+    headerPositionX: 50,
+    headerPositionY: 30,
+    headerWidth: 400,
+    headerHeight: 60,
+    // Message
+    messageFontSize: 18,
+    messageFontFamily: "sans-serif",
+    messagePositionX: 50,
+    messagePositionY: 70,
+    messageWidth: 400,
+    messageHeight: 80,
+    // Image
+    enableImage: true,
     imageUrl: null,
-    imageSize: 200,
-    soundEnabled: true,
+    imageWidth: 80,
+    imageHeight: 80,
+    imagePositionX: 20,
+    imagePositionY: 50,
+    imageAsBackground: false,
+    // Sound
+    enableSound: true,
     soundUrl: null,
-    soundVolume: 75,
-    ttsEnabled: false,
-    ttsVoice: "en-US",
+    soundVolume: 70,
+    // TTS
+    enableTTS: false,
+    ttsVoice: "female",
     ttsSpeed: 1.0,
     ttsVolume: 80,
+    readDonorName: true,
+    readAmount: true,
+    readMessage: true,
   })
 
   const [settings, setSettings] = useState<Settings>({
