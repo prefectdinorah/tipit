@@ -25,7 +25,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
       // Play sound
       if (settings.enableSound && settings.soundUrl) {
         const soundUrl = settings.soundUrl.startsWith('/alerts/') 
-          ? `/api/alerts/files${settings.soundUrl}` 
+          ? `/api/alerts/files${settings.soundUrl.replace('/alerts/', '/')}` 
           : settings.soundUrl
         const audio = new Audio(soundUrl)
         audio.volume = settings.soundVolume / 100
@@ -115,7 +115,9 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
           >
             {settings.enableImage && settings.imageAsBackground && settings.imageUrl && (
               <img
-                src={settings.imageUrl.startsWith('/alerts/') ? `/api/alerts/files${settings.imageUrl}` : settings.imageUrl}
+                src={settings.imageUrl.startsWith('/alerts/') 
+                  ? `/api/alerts/files${settings.imageUrl.replace('/alerts/', '/')}` 
+                  : settings.imageUrl}
                 alt="Background"
                 className="absolute inset-0 h-full w-full object-cover opacity-20"
               />
@@ -133,7 +135,9 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
                 }}
               >
                 <img
-                  src={settings.imageUrl.startsWith('/alerts/') ? `/api/alerts/files${settings.imageUrl}` : settings.imageUrl}
+                  src={settings.imageUrl.startsWith('/alerts/') 
+                    ? `/api/alerts/files${settings.imageUrl.replace('/alerts/', '/')}` 
+                    : settings.imageUrl}
                   alt="Donation"
                   className="h-full w-full object-contain"
                 />
