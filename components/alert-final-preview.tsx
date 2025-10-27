@@ -24,7 +24,10 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
 
       // Play sound
       if (settings.enableSound && settings.soundUrl) {
-        const audio = new Audio(settings.soundUrl)
+        const soundUrl = settings.soundUrl.startsWith('/alerts/') 
+          ? `/api/alerts/files${settings.soundUrl}` 
+          : settings.soundUrl
+        const audio = new Audio(soundUrl)
         audio.volume = settings.soundVolume / 100
         audio.play().catch(() => {
           console.log("Sound playback failed")
@@ -112,7 +115,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
           >
             {settings.enableImage && settings.imageAsBackground && settings.imageUrl && (
               <img
-                src={settings.imageUrl}
+                src={settings.imageUrl.startsWith('/alerts/') ? `/api/alerts/files${settings.imageUrl}` : settings.imageUrl}
                 alt="Background"
                 className="absolute inset-0 h-full w-full object-cover opacity-20"
               />
@@ -130,7 +133,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
                 }}
               >
                 <img
-                  src={settings.imageUrl}
+                  src={settings.imageUrl.startsWith('/alerts/') ? `/api/alerts/files${settings.imageUrl}` : settings.imageUrl}
                   alt="Donation"
                   className="h-full w-full object-contain"
                 />
