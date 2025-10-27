@@ -135,10 +135,12 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
     console.log("=== UPDATE ALERT SETTINGS START ===")
     const body = await request.json()
-    console.log("Request body:", body)
+    console.log("Request body keys:", Object.keys(body))
+    console.log("Request body:", JSON.stringify(body, null, 2))
 
     // Валидация
     const validatedData = alertSettingsSchema.parse(body)
+    console.log("Validation passed")
 
     // Маппим camelCase в snake_case для Prisma
     const prismaData: any = {}
