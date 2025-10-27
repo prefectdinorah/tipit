@@ -183,32 +183,56 @@ model AlertSettings {
   id               Int      @id @default(autoincrement())
   userId           Int      @unique @map("user_id")
   
-  // Text settings
-  fontSize         Int      @default(40) @map("font_size")
-  fontFamily       String   @default("Roboto") @map("font_family")
-  textColor        String   @default("#ffffff") @map("text_color")
-  textAnimation    String   @default("slide") @map("text_animation")
-  
-  // Display settings
-  duration         Int      @default(5) // seconds
-  position         String   @default("center")
+  // General settings
   minAmount        Decimal  @default(1.00) @map("min_amount") @db.Decimal(10, 2)
+  messageTemplate  String   @default("{name} задонатил {amount}!") @map("message_template")
+  showDonorName    Boolean  @default(true) @map("show_donor_name")
+  
+  // Visual settings
+  animationType    String   @default("slide") @map("animation_type") // fade, slide, bounce, zoom
+  duration         Int      @default(5) // seconds
+  backgroundColor  String   @default("#6366f1") @map("background_color")
+  textColor        String   @default("#ffffff") @map("text_color")
+  transparentBackground Boolean @default(false) @map("transparent_background")
+  
+  // Header (template) settings
+  headerFontSize   Int      @default(24) @map("header_font_size")
+  headerFontFamily String   @default("sans-serif") @map("header_font_family")
+  headerPositionX  Int      @default(50) @map("header_position_x") // percentage
+  headerPositionY  Int      @default(30) @map("header_position_y")
+  headerWidth      Int      @default(400) @map("header_width") // pixels
+  headerHeight     Int      @default(60) @map("header_height")
+  
+  // Message settings
+  messageFontSize  Int      @default(18) @map("message_font_size")
+  messageFontFamily String  @default("sans-serif") @map("message_font_family")
+  messagePositionX Int      @default(50) @map("message_position_x")
+  messagePositionY Int      @default(70) @map("message_position_y")
+  messageWidth     Int      @default(400) @map("message_width")
+  messageHeight    Int      @default(80) @map("message_height")
   
   // Image settings
-  imageEnabled     Boolean  @default(true) @map("image_enabled")
+  enableImage      Boolean  @default(true) @map("enable_image")
   imageUrl         String?  @map("image_url")
-  imageSize        Int      @default(200) @map("image_size")
+  imageWidth       Int      @default(80) @map("image_width")
+  imageHeight      Int      @default(80) @map("image_height")
+  imagePositionX   Int      @default(20) @map("image_position_x")
+  imagePositionY   Int      @default(50) @map("image_position_y")
+  imageAsBackground Boolean @default(false) @map("image_as_background")
   
   // Sound settings
-  soundEnabled     Boolean  @default(true) @map("sound_enabled")
+  enableSound      Boolean  @default(true) @map("enable_sound")
   soundUrl         String?  @map("sound_url")
-  soundVolume      Int      @default(75) @map("sound_volume")
+  soundVolume      Int      @default(70) @map("sound_volume")
   
-  // TTS settings (Web Speech API)
-  ttsEnabled       Boolean  @default(false) @map("tts_enabled")
-  ttsVoice         String   @default("en-US") @map("tts_voice")
+  // TTS settings
+  enableTTS        Boolean  @default(false) @map("enable_tts")
+  ttsVoice         String   @default("female") @map("tts_voice") // male, female, robot
   ttsSpeed         Float    @default(1.0) @map("tts_speed") @db.Real
   ttsVolume        Int      @default(80) @map("tts_volume")
+  readDonorName    Boolean  @default(true) @map("read_donor_name")
+  readAmount       Boolean  @default(true) @map("read_amount")
+  readMessage      Boolean  @default(true) @map("read_message")
   
   // Security
   alertToken       String   @unique @default(uuid()) @map("alert_token")
