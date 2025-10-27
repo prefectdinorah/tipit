@@ -83,52 +83,52 @@ export default function AlertsAdvancedPage() {
         
         // Маппим данные из БД в формат компонента
         setSettings({
-          minAmount: data.minAmount || 1,
+          minAmount: Number(data.minAmount) || 1,
           messageTemplate: data.messageTemplate || "{name} задонатил {amount}!",
           showDonorName: data.showDonorName ?? true,
           animationType: data.animationType || "slide",
-          duration: data.duration || 5,
+          duration: Number(data.duration) || 5,
           backgroundColor: data.backgroundColor || "#6366f1",
           textColor: data.textColor || "#ffffff",
           transparentBackground: data.transparentBackground ?? false,
-          headerFontSize: data.headerFontSize || 24,
+          headerFontSize: Number(data.headerFontSize) || 24,
           headerFontFamily: data.headerFontFamily || "sans-serif",
-          messageFontSize: data.messageFontSize || 18,
+          messageFontSize: Number(data.messageFontSize) || 18,
           messageFontFamily: data.messageFontFamily || "sans-serif",
           headerPosition: { 
-            x: data.headerPositionX || 50, 
-            y: data.headerPositionY || 30 
+            x: Number(data.headerPositionX) || 50, 
+            y: Number(data.headerPositionY) || 30 
           },
           headerSize: { 
-            width: data.headerWidth || 400, 
-            height: data.headerHeight || 60 
+            width: Number(data.headerWidth) || 400, 
+            height: Number(data.headerHeight) || 60 
           },
           messagePosition: { 
-            x: data.messagePositionX || 50, 
-            y: data.messagePositionY || 70 
+            x: Number(data.messagePositionX) || 50, 
+            y: Number(data.messagePositionY) || 70 
           },
           messageSize: { 
-            width: data.messageWidth || 400, 
-            height: data.messageHeight || 80 
+            width: Number(data.messageWidth) || 400, 
+            height: Number(data.messageHeight) || 80 
           },
           enableImage: data.enableImage ?? true,
           imageUrl: data.imageUrl || "",
           imageSize: { 
-            width: data.imageWidth || 80, 
-            height: data.imageHeight || 80 
+            width: Number(data.imageWidth) || 80, 
+            height: Number(data.imageHeight) || 80 
           },
           imagePosition: { 
-            x: data.imagePositionX || 20, 
-            y: data.imagePositionY || 50 
+            x: Number(data.imagePositionX) || 20, 
+            y: Number(data.imagePositionY) || 50 
           },
           imageAsBackground: data.imageAsBackground ?? false,
           enableSound: data.enableSound ?? true,
           soundUrl: data.soundUrl || "",
-          soundVolume: data.soundVolume || 70,
+          soundVolume: Number(data.soundVolume) || 70,
           enableTTS: data.enableTTS ?? false,
           ttsVoice: data.ttsVoice || "female",
-          ttsSpeed: data.ttsSpeed || 1,
-          ttsVolume: data.ttsVolume || 80,
+          ttsSpeed: Number(data.ttsSpeed) || 1,
+          ttsVolume: Number(data.ttsVolume) || 80,
           readDonorName: data.readDonorName ?? true,
           readAmount: data.readAmount ?? true,
           readMessage: data.readMessage ?? true,
