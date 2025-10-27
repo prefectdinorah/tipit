@@ -48,6 +48,9 @@ logs/
 public/uploads/*
 !public/uploads/.gitkeep
 
+# imported examples (reference only)
+imported/
+
 # pm2
 .pm2/
 
