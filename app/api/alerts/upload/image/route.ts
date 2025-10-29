@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
+import { writeFile, mkdir, unlink } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import { requireAuth } from "@/lib/auth-middleware"
+import { prisma } from "@/lib/db"
 
 export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
@@ -40,6 +41,29 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     if (!existsSync(uploadDir)) {
       console.log("Creating upload directory...")
       await mkdir(uploadDir, { recursive: true })
+    }
+
+    // Удаляем старое изображение если оно есть
+    try {
+      const existingSettings = await prisma.alertSettings.findUnique({
+        where: { userId: user.id },
+        select: { imageUrl: true },
+      })
+
+      if (existingSettings?.imageUrl) {
+        const oldFilename = existingSettings.imageUrl.split('/').pop()
+        if (oldFilename) {
+          const oldFilepath = path.join(uploadDir, oldFilename)
+          if (existsSync(oldFilepath)) {
+            console.log("Deleting old image:", oldFilepath)
+            await unlink(oldFilepath)
+            console.log("Old image deleted")
+          }
+        }
+      }
+    } catch (deleteError) {
+      console.warn("Failed to delete old image:", deleteError)
+      // Не критично, продолжаем загрузку
     }
 
     // Генерируем уникальное имя файла

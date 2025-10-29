@@ -23,6 +23,8 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
 
       // Play sound
       let audio: HTMLAudioElement | null = null
+      let ttsTimeout: ReturnType<typeof setTimeout> | null = null
+      
       if (settings.enableSound && settings.soundUrl) {
         const soundUrl = settings.soundUrl.startsWith('/alerts/') 
           ? `/api/alerts/files${settings.soundUrl.replace('/alerts/', '/')}` 
@@ -34,21 +36,29 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
         })
       }
 
-      // TTS
-      if (settings.enableTTS && "speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance()
-        let text = ""
+      // TTS after sound ends or after 1 second if no sound
+      const startTTS = () => {
+        if (settings.enableTTS && "speechSynthesis" in window) {
+          const utterance = new SpeechSynthesisUtterance()
+          let text = ""
 
-        if (settings.readDonorName) text += `${donation.name} `
-        if (settings.readAmount) text += `задонатил ${donation.amount} рублей. `
-        if (settings.readMessage && donation.message) text += donation.message
+          if (settings.readDonorName) text += `${donation.name} `
+          if (settings.readAmount) text += `задонатил ${donation.amount} рублей. `
+          if (settings.readMessage && donation.message) text += donation.message
 
-        utterance.text = text
-        utterance.rate = settings.ttsSpeed
-        utterance.volume = settings.ttsVolume / 100
-        utterance.lang = "ru-RU"
+          utterance.text = text
+          utterance.rate = settings.ttsSpeed
+          utterance.volume = settings.ttsVolume / 100
+          utterance.lang = "ru-RU"
 
-        window.speechSynthesis.speak(utterance)
+          window.speechSynthesis.speak(utterance)
+        }
+      }
+
+      if (audio) {
+        audio.addEventListener('ended', startTTS)
+      } else if (settings.enableTTS) {
+        ttsTimeout = setTimeout(startTTS, 500)
       }
 
       const timer = setTimeout(() => {
@@ -57,6 +67,9 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
 
       return () => {
         clearTimeout(timer)
+        if (ttsTimeout) {
+          clearTimeout(ttsTimeout)
+        }
         if (audio) {
           audio.pause()
           audio.src = "" // Освобождаем ресурсы
