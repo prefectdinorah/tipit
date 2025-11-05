@@ -1,18 +1,18 @@
--- Скрипт для очистки старых imageUrl и soundUrl перед переходом на GridFS
+-- Скрипт для очистки старых image_url и sound_url перед переходом на GridFS
 -- Запустить на сервере перед деплоем новой версии
 
--- Очищаем все imageUrl и soundUrl в alert_settings
+-- Очищаем все image_url и sound_url в alert_settings
 UPDATE alert_settings 
 SET 
-  "imageUrl" = NULL,
-  "soundUrl" = NULL
+  image_url = NULL,
+  sound_url = NULL
 WHERE 
-  "imageUrl" IS NOT NULL 
-  OR "soundUrl" IS NOT NULL;
+  image_url IS NOT NULL 
+  OR sound_url IS NOT NULL;
 
 -- Проверяем результат
 SELECT 
   COUNT(*) as total_records,
-  COUNT("imageUrl") as with_image,
-  COUNT("soundUrl") as with_sound
+  COUNT(image_url) as with_image,
+  COUNT(sound_url) as with_sound
 FROM alert_settings;
