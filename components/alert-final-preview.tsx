@@ -128,9 +128,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
           >
             {settings.enableImage && settings.imageAsBackground && settings.imageUrl && (
               <img
-                src={settings.imageUrl.startsWith('/alerts/') 
-                  ? `/api/alerts/files${settings.imageUrl.replace('/alerts/', '/')}` 
-                  : settings.imageUrl}
+                src={`/api/alerts/files/${settings.imageUrl}`}
                 alt="Background"
                 className="absolute inset-0 h-full w-full object-cover opacity-20"
               />
@@ -148,9 +146,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
                 }}
               >
                 <img
-                  src={settings.imageUrl.startsWith('/alerts/') 
-                    ? `/api/alerts/files${settings.imageUrl.replace('/alerts/', '/')}` 
-                    : settings.imageUrl}
+                  src={`/api/alerts/files/${settings.imageUrl}`}
                   alt="Donation"
                   className="h-full w-full object-contain"
                 />

@@ -1,13 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir, unlink } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 import { requireAuth } from "@/lib/auth-middleware"
 import { prisma } from "@/lib/db"
+import { uploadToGridFS, deleteFromGridFS } from "@/lib/gridfs"
 
 export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    console.log("=== IMAGE UPLOAD START ===")
+    console.log("=== IMAGE UPLOAD START (GridFS) ===")
     console.log("User authenticated:", user?.id, user?.username)
     
     const formData = await request.formData()
@@ -34,16 +32,7 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
       return NextResponse.json({ error: "File too large. Maximum 10MB" }, { status: 400 })
     }
 
-    // Создаем директорию для картинок если её нет
-    const uploadDir = path.join(process.cwd(), "public", "alerts", "images")
-    console.log("Upload directory:", uploadDir)
-
-    if (!existsSync(uploadDir)) {
-      console.log("Creating upload directory...")
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    // Удаляем старое изображение если оно есть
+    // Удаляем старое изображение из GridFS если оно есть
     try {
       const existingSettings = await prisma.alertSettings.findUnique({
         where: { userId: user.id },
@@ -51,15 +40,11 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
       })
 
       if (existingSettings?.imageUrl) {
-        const oldFilename = existingSettings.imageUrl.split('/').pop()
-        if (oldFilename) {
-          const oldFilepath = path.join(uploadDir, oldFilename)
-          if (existsSync(oldFilepath)) {
-            console.log("Deleting old image:", oldFilepath)
-            await unlink(oldFilepath)
-            console.log("Old image deleted")
-          }
-        }
+        // imageUrl теперь содержит GridFS ID
+        const fileId = existingSettings.imageUrl
+        console.log("Deleting old image from GridFS:", fileId)
+        await deleteFromGridFS(fileId)
+        console.log("Old image deleted from GridFS")
       }
     } catch (deleteError) {
       console.warn("Failed to delete old image:", deleteError)
@@ -69,25 +54,23 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     // Генерируем уникальное имя файла
     const ext = file.name.split(".").pop()
     const filename = `${user.uuid}-${Date.now()}.${ext}`
-    const filepath = path.join(uploadDir, filename)
 
-    console.log("Saving to:", filepath)
-
-    // Сохраняем файл
+    // Сохраняем файл в GridFS
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    
+    const fileId = await uploadToGridFS(filename, buffer, {
+      contentType: file.type,
+      userId: user.id.toString(),
+      type: "image",
+    })
 
-    console.log("File saved successfully")
-
-    // URL для доступа
-    const imageUrl = `/alerts/images/${filename}`
-    console.log("Image URL:", imageUrl)
-    console.log("=== IMAGE UPLOAD END ===")
+    console.log("File saved to GridFS with ID:", fileId)
+    console.log("=== IMAGE UPLOAD END (GridFS) ===")
 
     return NextResponse.json({
       success: true,
-      imageUrl,
+      imageUrl: fileId, // Теперь возвращаем GridFS ID вместо пути
       message: "Image uploaded successfully",
     })
   } catch (error) {

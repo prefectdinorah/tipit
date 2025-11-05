@@ -1,13 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir, unlink } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 import { requireAuth } from "@/lib/auth-middleware"
 import { prisma } from "@/lib/db"
+import { uploadToGridFS, deleteFromGridFS } from "@/lib/gridfs"
 
 export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    console.log("=== SOUND UPLOAD START ===")
+    console.log("=== SOUND UPLOAD START (GridFS) ===")
     const formData = await request.formData()
     const file = formData.get("sound") as File
 
@@ -32,16 +30,7 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
       return NextResponse.json({ error: "File too large. Maximum 5MB" }, { status: 400 })
     }
 
-    // Создаем директорию для звуков если её нет
-    const uploadDir = path.join(process.cwd(), "public", "alerts", "sounds")
-    console.log("Upload directory:", uploadDir)
-
-    if (!existsSync(uploadDir)) {
-      console.log("Creating upload directory...")
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    // Удаляем старый звук если он есть
+    // Удаляем старый звук из GridFS если он есть
     try {
       const existingSettings = await prisma.alertSettings.findUnique({
         where: { userId: user.id },
@@ -49,15 +38,11 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
       })
 
       if (existingSettings?.soundUrl) {
-        const oldFilename = existingSettings.soundUrl.split('/').pop()
-        if (oldFilename) {
-          const oldFilepath = path.join(uploadDir, oldFilename)
-          if (existsSync(oldFilepath)) {
-            console.log("Deleting old sound:", oldFilepath)
-            await unlink(oldFilepath)
-            console.log("Old sound deleted")
-          }
-        }
+        // soundUrl теперь содержит GridFS ID
+        const fileId = existingSettings.soundUrl
+        console.log("Deleting old sound from GridFS:", fileId)
+        await deleteFromGridFS(fileId)
+        console.log("Old sound deleted from GridFS")
       }
     } catch (deleteError) {
       console.warn("Failed to delete old sound:", deleteError)
@@ -67,25 +52,23 @@ export const POST = requireAuth(async (request: NextRequest, user: any) => {
     // Генерируем уникальное имя файла
     const ext = file.name.split(".").pop()
     const filename = `${user.uuid}-${Date.now()}.${ext}`
-    const filepath = path.join(uploadDir, filename)
 
-    console.log("Saving to:", filepath)
-
-    // Сохраняем файл
+    // Сохраняем файл в GridFS
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    
+    const fileId = await uploadToGridFS(filename, buffer, {
+      contentType: file.type,
+      userId: user.id.toString(),
+      type: "sound",
+    })
 
-    console.log("File saved successfully")
-
-    // URL для доступа
-    const soundUrl = `/alerts/sounds/${filename}`
-    console.log("Sound URL:", soundUrl)
-    console.log("=== SOUND UPLOAD END ===")
+    console.log("File saved to GridFS with ID:", fileId)
+    console.log("=== SOUND UPLOAD END (GridFS) ===")
 
     return NextResponse.json({
       success: true,
-      soundUrl,
+      soundUrl: fileId, // Теперь возвращаем GridFS ID вместо пути
       message: "Sound uploaded successfully",
     })
   } catch (error) {

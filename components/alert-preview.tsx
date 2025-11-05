@@ -351,9 +351,7 @@ export default function AlertPreview({
               }}
             >
               <img
-                src={settings.imageUrl?.startsWith('/alerts/') 
-                  ? `/api/alerts/files${settings.imageUrl.replace('/alerts/', '/')}` 
-                  : settings.imageUrl}
+                src={`/api/alerts/files/${settings.imageUrl}`}
                 alt="Donation"
                 className="h-full w-full object-contain"
                 draggable={false}

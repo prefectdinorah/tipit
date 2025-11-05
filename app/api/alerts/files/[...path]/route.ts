@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { readFile } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
+import { downloadFromGridFS } from "@/lib/gridfs"
 
 /**
- * API Route для раздачи статических файлов алертов (картинки и звуки)
+ * API Route для раздачи файлов алертов из GridFS (картинки и звуки)
  * 
  * Endpoints:
- * - GET /api/alerts/files/images/filename.jpg
- * - GET /api/alerts/files/sounds/filename.mp3
+ * - GET /api/alerts/files/{gridfs_id}
  * 
- * Причина: Next.js не раздаёт файлы из /public/alerts/ напрямую,
- * поэтому создан отдельный API route с проверкой безопасности
+ * Теперь файлы хранятся в MongoDB GridFS, а не в файловой системе
  */
 export async function GET(
   request: NextRequest,
@@ -20,80 +16,41 @@ export async function GET(
   try {
     const pathSegments = params.path
     
-    if (!pathSegments || pathSegments.length < 2) {
+    if (!pathSegments || pathSegments.length === 0) {
       return new NextResponse("Invalid path", { status: 400 })
     }
 
-    // pathSegments = ["images", "filename.jpg"] или ["sounds", "filename.mp3"]
-    const type = pathSegments[0] // "images" или "sounds"
-    const filename = pathSegments.slice(1).join("/") // поддержка вложенных путей
+    // pathSegments теперь содержат GridFS ID: ["67xxxxxxxxxxxxxxxx"]
+    const fileId = pathSegments.join("/")
 
-    // Безопасность: проверяем что тип валиден
-    if (type !== "images" && type !== "sounds") {
-      return new NextResponse("Invalid file type", { status: 400 })
-    }
+    console.log("Fetching file from GridFS:", fileId)
 
-    // Путь к файлу
-    const filePath = join(process.cwd(), "public", "alerts", type, filename)
+    // Получаем файл из GridFS
+    const fileData = await downloadFromGridFS(fileId)
 
-    // Проверяем существование
-    if (!existsSync(filePath)) {
-      console.log("File not found:", filePath)
+    if (!fileData) {
+      console.log("File not found in GridFS:", fileId)
       return new NextResponse("File not found", { status: 404 })
     }
 
-    // Читаем файл
-    const fileBuffer = await readFile(filePath)
+    // Читаем stream в buffer
+    const chunks: Buffer[] = []
+    for await (const chunk of fileData.stream) {
+      chunks.push(chunk)
+    }
+    const fileBuffer = Buffer.concat(chunks)
 
-    // Определяем Content-Type
-    const contentType = getContentType(filename, type)
+    console.log(`File loaded from GridFS: ${fileId} (${fileBuffer.length} bytes)`)
 
     // Возвращаем файл с правильными заголовками
     return new NextResponse(fileBuffer, {
       headers: {
-        "Content-Type": contentType,
+        "Content-Type": fileData.contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     })
   } catch (error) {
-    console.error("Error serving alert file:", error)
+    console.error("Error serving alert file from GridFS:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
-}
-
-function getContentType(filename: string, type: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase()
-
-  if (type === "images") {
-    switch (ext) {
-      case "jpg":
-      case "jpeg":
-        return "image/jpeg"
-      case "png":
-        return "image/png"
-      case "gif":
-        return "image/gif"
-      case "webp":
-        return "image/webp"
-      default:
-        return "image/jpeg"
-    }
-  }
-
-  if (type === "sounds") {
-    switch (ext) {
-      case "mp3":
-        return "audio/mpeg"
-      case "wav":
-        return "audio/wav"
-      case "ogg":
-        return "audio/ogg"
-      case "m4a":
-        return "audio/mp4"
-      default:
-        return "audio/mpeg"
-    }
-  }
-
-  return "application/octet-stream"
 }
