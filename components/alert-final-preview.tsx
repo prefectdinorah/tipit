@@ -26,9 +26,7 @@ export default function AlertFinalPreview({ settings, donation, show }: AlertFin
       let ttsTimeout: ReturnType<typeof setTimeout> | null = null
       
       if (settings.enableSound && settings.soundUrl) {
-        const soundUrl = settings.soundUrl.startsWith('/alerts/') 
-          ? `/api/alerts/files${settings.soundUrl.replace('/alerts/', '/')}` 
-          : settings.soundUrl
+        const soundUrl = `/api/alerts/files/${settings.soundUrl}`
         audio = new Audio(soundUrl)
         audio.volume = settings.soundVolume / 100
         audio.play().catch(() => {
