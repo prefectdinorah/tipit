@@ -31,6 +31,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
+import SecuritySettings from "@/components/settings/security-settings"
 
 interface Settings {
   // Profile
@@ -1087,7 +1088,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                   <Button
-                    onClick={() => window.location.href = '/settings/alerts-advanced'}
+                    onClick={() => window.location.href = '/settings/alerts'}
                     size="lg"
                     className="bg-white text-purple-600 hover:bg-purple-50 font-bold text-lg px-8 py-6"
                   >
@@ -1666,49 +1667,114 @@ export default function SettingsPage() {
           <TabsContent value="appearance" className="space-y-6">
             <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white">Appearance Settings</CardTitle>
-                <CardDescription className="text-purple-300">Customize your stream's look and feel</CardDescription>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Appearance Settings
+                </CardTitle>
+                <CardDescription className="text-purple-300">
+                  Customize your donation page colors and theme
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <Label className="text-purple-300">Theme</Label>
-                  <Select value={settings.theme} onValueChange={(value) => updateSetting("theme", value)}>
-                    <SelectTrigger className="mt-1 bg-slate-700/50 border-purple-800/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-purple-800/30">
-                      <SelectItem value="purple">Purple</SelectItem>
-                      <SelectItem value="blue">Blue</SelectItem>
-                      <SelectItem value="green">Green</SelectItem>
-                      <SelectItem value="red">Red</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="primaryColor" className="text-purple-300">
-                      Primary Color
-                    </Label>
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      value={settings.primaryColor}
-                      onChange={(e) => updateSetting("primaryColor", e.target.value)}
-                      className="mt-1 h-12 bg-slate-700/50 border-purple-800/30"
-                    />
+                    <Label className="text-white">Theme Preset</Label>
+                    <Select value={settings.theme} onValueChange={(value) => updateSetting("theme", value)}>
+                      <SelectTrigger className="mt-2 bg-slate-700/50 border-purple-800/30 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-purple-800/30">
+                        <SelectItem value="purple">💜 Purple (Default)</SelectItem>
+                        <SelectItem value="blue">💙 Blue Ocean</SelectItem>
+                        <SelectItem value="green">💚 Green Forest</SelectItem>
+                        <SelectItem value="red">❤️ Red Flame</SelectItem>
+                        <SelectItem value="custom">🎨 Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-purple-400 mt-1">
+                      Choose a pre-made theme or create your own
+                    </p>
                   </div>
-                  <div>
-                    <Label htmlFor="accentColor" className="text-purple-300">
-                      Accent Color
-                    </Label>
-                    <Input
-                      id="accentColor"
-                      type="color"
-                      value={settings.accentColor}
-                      onChange={(e) => updateSetting("accentColor", e.target.value)}
-                      className="mt-1 h-12 bg-slate-700/50 border-purple-800/30"
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="primaryColor" className="text-white">
+                        Primary Color
+                      </Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          id="primaryColor"
+                          type="color"
+                          value={settings.primaryColor}
+                          onChange={(e) => updateSetting("primaryColor", e.target.value)}
+                          className="h-12 w-16 bg-slate-700/50 border-purple-800/30 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={settings.primaryColor}
+                          onChange={(e) => updateSetting("primaryColor", e.target.value)}
+                          className="flex-1 bg-slate-700/50 border-purple-800/30 text-white"
+                          placeholder="#6366f1"
+                        />
+                      </div>
+                      <p className="text-sm text-purple-400 mt-1">Main color for buttons</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="accentColor" className="text-white">
+                        Accent Color
+                      </Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          id="accentColor"
+                          type="color"
+                          value={settings.accentColor}
+                          onChange={(e) => updateSetting("accentColor", e.target.value)}
+                          className="h-12 w-16 bg-slate-700/50 border-purple-800/30 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={settings.accentColor}
+                          onChange={(e) => updateSetting("accentColor", e.target.value)}
+                          className="flex-1 bg-slate-700/50 border-purple-800/30 text-white"
+                          placeholder="#ec4899"
+                        />
+                      </div>
+                      <p className="text-sm text-purple-400 mt-1">Color for highlights</p>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="space-y-2">
+                    <Label className="text-white">Preview</Label>
+                    <div
+                      className="rounded-lg p-6 border-2 border-dashed"
+                      style={{
+                        background: `linear-gradient(135deg, ${settings.primaryColor}20 0%, ${settings.accentColor}20 100%)`,
+                        borderColor: settings.primaryColor + "40",
+                      }}
+                    >
+                      <div className="space-y-3">
+                        <h3 className="text-white font-bold text-lg">Donation Page Preview</h3>
+                        <button
+                          className="px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                          style={{
+                            background: `linear-gradient(135deg, ${settings.primaryColor} 0%, ${settings.accentColor} 100%)`,
+                          }}
+                        >
+                          Support Me ❤️
+                        </button>
+                        <p className="text-sm text-purple-300">
+                          These colors will be applied to your donation page
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg bg-blue-500/10 border border-blue-500/30 p-4">
+                    <p className="text-sm text-blue-300">
+                      <strong>💡 Tip:</strong> Choose colors that match your stream's branding.
+                      High contrast colors work best for visibility!
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -1719,26 +1785,76 @@ export default function SettingsPage() {
           <TabsContent value="music" className="space-y-6">
             <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-white">Music Settings</CardTitle>
-                <CardDescription className="text-purple-300">Configure track request settings</CardDescription>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Music className="h-5 w-5" />
+                  Music Settings
+                </CardTitle>
+                <CardDescription className="text-purple-300">
+                  Configure music playback for donations
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-purple-300">Music integration coming soon...</p>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="alertVolume" className="text-white">
+                        Alert Volume
+                      </Label>
+                      <span className="text-sm text-purple-300">{settings.alertVolume}%</span>
+                    </div>
+                    <Slider
+                      id="alertVolume"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={[settings.alertVolume]}
+                      onValueChange={(value) =>
+                        setSettings({ ...settings, alertVolume: value[0] })
+                      }
+                      className="w-full"
+                    />
+                    <p className="text-sm text-purple-400">
+                      Volume level for alert sounds and music
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="alertDuration" className="text-white">
+                      Alert Duration (seconds)
+                    </Label>
+                    <Input
+                      id="alertDuration"
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={settings.alertDuration}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          alertDuration: parseInt(e.target.value) || 5,
+                        })
+                      }
+                      className="bg-slate-700/50 border-purple-800/30 text-white"
+                    />
+                    <p className="text-sm text-purple-400">
+                      How long alerts are displayed (1-60 seconds)
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-blue-500/10 border border-blue-500/30 p-4">
+                    <p className="text-sm text-blue-300">
+                      <strong>ℹ️ Note:</strong> These settings will be applied to donation
+                      alerts and music requests. Music integration coming soon!
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Security Tab */}
           <TabsContent value="security" className="space-y-6">
-            <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white">Security Settings</CardTitle>
-                <CardDescription className="text-purple-300">Manage your account security</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-purple-300">Security settings coming soon...</p>
-              </CardContent>
-            </Card>
+            <SecuritySettings />
           </TabsContent>
         </Tabs>
 
