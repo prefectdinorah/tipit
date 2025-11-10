@@ -751,13 +751,10 @@ export default function SettingsPage() {
               <DollarSign className="h-4 w-4 mr-2" />
               Donations
             </TabsTrigger>
-            <TabsTrigger
-              value="alerts"
-              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-white/90 hover:text-white"
-            >
+            <Link href="/settings/alerts" className="flex items-center justify-center px-3 py-2 rounded-md data-[state=active]:bg-purple-600 data-[state=active]:text-white text-white/90 hover:text-white hover:bg-purple-600/50 transition-colors">
               <Bell className="h-4 w-4 mr-2" />
               Alerts
-            </TabsTrigger>
+            </Link>
             <TabsTrigger
               value="appearance"
               className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-white/90 hover:text-white"
