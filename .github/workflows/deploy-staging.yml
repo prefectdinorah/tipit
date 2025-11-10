@@ -70,8 +70,8 @@ jobs:
           port: 22
           script: |
             cd /root/tipit/dev
-            echo "📦 Installing pnpm packages..."
-            pnpm install --legacy-peer-deps
+            echo "📦 Installing npm packages..."
+            npm install --legacy-peer-deps
             echo "✅ Dependencies installed"
 
       # 6. Генерация Prisma Client
@@ -85,7 +85,7 @@ jobs:
           script: |
             cd /root/tipit/dev
             echo "🔨 Generating Prisma Client..."
-            pnpm run prisma:generate
+            npm run prisma:generate
             echo "✅ Prisma Client generated"
 
       # 7. Миграции базы данных
@@ -99,7 +99,7 @@ jobs:
           script: |
             cd /root/tipit/dev
             echo "🗄️ Running database migrations..."
-            pnpm run prisma:migrate
+            npm run prisma:migrate
             echo "✅ Migrations completed"
 
       # 8. Сборка приложения
@@ -113,7 +113,7 @@ jobs:
           script: |
             cd /root/tipit/dev
             echo "🏗️ Building Next.js application..."
-            pnpm run build
+            npm run build
             echo "✅ Build completed"
 
       # 9. Перезапуск PM2
@@ -126,7 +126,7 @@ jobs:
           port: 22
           script: |
             echo "♻️ Restarting PM2 process..."
-            pm2 restart tipit-dev || pm2 start pnpm --name "tipit-dev" -- start -- -p 3001
+            pm2 restart tipit-dev || pm2 start npm --name "tipit-dev" -- start -- -p 3001
             pm2 save
             echo "✅ PM2 process restarted"
             pm2 status tipit-dev
