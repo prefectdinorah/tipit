@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
-import { validateSession } from "@/lib/auth-middleware"
+import { getSessionUser } from "@/lib/auth-middleware"
 
 const prisma = new PrismaClient()
 
@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
     const twitchUser = userData.data[0]
 
     // Валидация сессии
-    const session = await validateSession(request)
-    if (!session) {
+    const user = await getSessionUser(request)
+    if (!user) {
       return NextResponse.redirect(new URL("/auth/login?twitch=session_expired", request.url))
     }
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const expiresAt = new Date(Date.now() + expires_in * 1000)
     
     await prisma.user.update({
-      where: { id: session.userId },
+      where: { id: user.id },
       data: {
         twitchId: twitchUser.id,
         twitchUsername: twitchUser.login,

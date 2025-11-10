@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
-import { validateSession } from "@/lib/auth-middleware"
+import { getSessionUser } from "@/lib/auth-middleware"
 
 const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await validateSession(request)
-    if (!session) {
+    const user = await getSessionUser(request)
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Удалить Twitch данные
     await prisma.user.update({
-      where: { id: session.userId },
+      where: { id: user.id },
       data: {
         twitchId: null,
         twitchUsername: null,
