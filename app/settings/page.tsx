@@ -1761,10 +1761,10 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Music className="h-5 w-5" />
-                  Music Settings
+                  🎵 Music Settings [TEST v2]
                 </CardTitle>
                 <CardDescription className="text-purple-300">
-                  Configure music playback for donations
+                  Configure music playback for donations (Testing deployment)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
