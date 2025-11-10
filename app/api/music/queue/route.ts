@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/db"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth-utils"
+import { requireAuth } from "@/lib/auth-middleware"
 import { validateYouTubeVideo, extractYouTubeId } from "@/lib/youtube"
 
 // GET - получить очередь
-export async function GET(request: NextRequest) {
+export const GET = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
     const queue = await prisma.musicQueue.findMany({
       where: {
-        userId: parseInt(session.user.id),
+        userId: user.id,
         status: {
           in: ["pending", "playing"],
         },
@@ -36,20 +26,11 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // POST - добавить трек в очередь
-export async function POST(request: NextRequest) {
+export const POST = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
     const { youtubeUrl, donorName, donationAmount } = await request.json()
 
     if (!youtubeUrl || !donorName || !donationAmount) {
@@ -69,16 +50,16 @@ export async function POST(request: NextRequest) {
 
     // Получить блэклист пользователя
     const blacklist = await prisma.musicBlacklist.findMany({
-      where: { userId: parseInt(session.user.id) },
+      where: { userId: user.id },
     })
 
     const blacklistedVideos = blacklist
-      .filter((item) => item.youtubeId)
-      .map((item) => item.youtubeId!)
+      .filter((item: any) => item.youtubeId)
+      .map((item: any) => item.youtubeId!)
 
     const blacklistedChannels = blacklist
-      .filter((item) => item.channelId)
-      .map((item) => item.channelId!)
+      .filter((item: any) => item.channelId)
+      .map((item: any) => item.channelId!)
 
     // Валидация видео
     const validation = await validateYouTubeVideo(youtubeId, {
@@ -98,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Получить максимальный orderIndex
     const maxOrder = await prisma.musicQueue.findFirst({
       where: {
-        userId: parseInt(session.user.id),
+        userId: user.id,
         status: "pending",
       },
       orderBy: {
@@ -111,7 +92,7 @@ export async function POST(request: NextRequest) {
     // Создать запись в очереди
     const track = await prisma.musicQueue.create({
       data: {
-        userId: parseInt(session.user.id),
+        userId: user.id,
         donorName,
         youtubeUrl,
         youtubeId,
@@ -131,20 +112,11 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // DELETE - удалить трек из очереди
-export async function DELETE(request: NextRequest) {
+export const DELETE = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
     const { searchParams } = new URL(request.url)
     const trackId = searchParams.get("trackId")
 
@@ -159,7 +131,7 @@ export async function DELETE(request: NextRequest) {
     const track = await prisma.musicQueue.findFirst({
       where: {
         id: parseInt(trackId),
-        userId: parseInt(session.user.id),
+        userId: user.id,
       },
     })
 
@@ -184,20 +156,11 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // PUT - изменить порядок треков
-export async function PUT(request: NextRequest) {
+export const PUT = requireAuth(async (request: NextRequest, user: any) => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
     const { trackIds } = await request.json()
 
     if (!Array.isArray(trackIds)) {
@@ -208,11 +171,11 @@ export async function PUT(request: NextRequest) {
     }
 
     // Обновить orderIndex для каждого трека
-    const updates = trackIds.map((id, index) =>
+    const updates = trackIds.map((id: number, index: number) =>
       prisma.musicQueue.update({
         where: {
           id,
-          userId: parseInt(session.user.id),
+          userId: user.id,
         },
         data: {
           orderIndex: index,
@@ -230,4 +193,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
