@@ -28,7 +28,6 @@ import {
   Loader2,
   Twitch,
   Link as LinkIcon,
-  Sparkles,
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import SecuritySettings from "@/components/settings/security-settings"
@@ -1077,31 +1076,6 @@ export default function SettingsPage() {
 
           {/* Alerts Tab */}
           <TabsContent value="alerts" className="space-y-6">
-            {/* Upgrade Notice */}
-            <Card className="bg-gradient-to-r from-purple-600 to-pink-600 border-0">
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">🎨 Новый расширенный редактор алертов!</h3>
-                    <p className="text-purple-100 text-lg">
-                      Теперь доступен улучшенный редактор с drag & drop позиционированием, продвинутыми настройками TTS и живым предпросмотром
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => window.location.href = '/settings/alerts'}
-                    size="lg"
-                    className="bg-white text-purple-600 hover:bg-purple-50 font-bold text-lg px-8 py-6"
-                  >
-                    <Sparkles className="h-6 w-6 mr-2" />
-                    Перейти к расширенному редактору
-                  </Button>
-                  <p className="text-xs text-purple-100">
-                    Старые настройки ниже будут скоро удалены
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Widget URL Card */}
             <Card className="bg-slate-800/50 border-purple-800/30 backdrop-blur-sm">
               <CardHeader>
