@@ -7,6 +7,7 @@ import { generateDonationId } from "@/lib/auth-utils"
 import { createLog } from "@/lib/logger"
 import { requireAuth } from "@/lib/auth-middleware"
 import { AlertEventManager } from "@/lib/alert-event-manager"
+import { extractYouTubeId, validateYouTubeVideo } from "@/lib/youtube"
 
 const donationSchema = z.object({
   streamerUsername: z.string(),
@@ -14,13 +15,7 @@ const donationSchema = z.object({
   amount: z.number().positive(),
   currency: z.string().default("USD"),
   message: z.string().max(500).optional(),
-  trackRequest: z
-    .object({
-      title: z.string(),
-      artist: z.string(),
-      url: z.string().url().optional(),
-    })
-    .optional(),
+  youtubeUrl: z.string().url().optional(),
   isAnonymous: z.boolean().default(false),
 })
 
@@ -49,8 +44,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Если есть трек-реквест, проверяем минимальную сумму для него
-    if (validatedData.trackRequest) {
+    // Если есть YouTube URL, добавляем в очередь музыки
+    let youtubeVideoInfo = null
+    if (validatedData.youtubeUrl) {
       const trackMinAmount = streamer.settings?.trackRequestMinimum || 20
       if (validatedData.amount < Number(trackMinAmount)) {
         return NextResponse.json(
@@ -58,7 +54,74 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         )
       }
+
+      const youtubeId = extractYouTubeId(validatedData.youtubeUrl)
+      if (!youtubeId) {
+        return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 })
+      }
+
+      // Получить блэклист
+      const blacklist = await prisma.musicBlacklist.findMany({
+        where: { userId: streamer.id },
+      })
+
+      const blacklistedVideos = blacklist.filter((item) => item.youtubeId).map((item) => item.youtubeId!)
+      const blacklistedChannels = blacklist.filter((item) => item.channelId).map((item) => item.channelId!)
+
+      // Валидация YouTube видео
+      const validation = await validateYouTubeVideo(youtubeId, {
+        minViews: 5000,
+        maxDuration: 600,
+        blacklistedVideos,
+        blacklistedChannels,
+      })
+
+      if (!validation.isValid) {
+        return NextResponse.json({ error: validation.error || "YouTube video validation failed" }, { status: 400 })
+      }
+
+      youtubeVideoInfo = validation.videoInfo
+
+      // Получить максимальный orderIndex
+      const maxOrder = await prisma.musicQueue.findFirst({
+        where: {
+          userId: streamer.id,
+          status: "pending",
+        },
+        orderBy: {
+          orderIndex: "desc",
+        },
+      })
+
+      const newOrderIndex = (maxOrder?.orderIndex || 0) + 1
+
+      // Добавить в очередь
+      await prisma.musicQueue.create({
+        data: {
+          userId: streamer.id,
+          donorName: validatedData.isAnonymous ? "Anonymous" : validatedData.donorName,
+          youtubeUrl: validatedData.youtubeUrl,
+          youtubeId,
+          title: youtubeVideoInfo?.title,
+          duration: youtubeVideoInfo?.duration,
+          thumbnailUrl: youtubeVideoInfo?.thumbnailUrl,
+          donationAmount: validatedData.amount,
+          orderIndex: newOrderIndex,
+        },
+      })
     }
+
+    // Убираем старое поле trackRequest
+    // Если есть трек-реквест, проверяем минимальную сумму для него
+    // if (validatedData.trackRequest) {
+    //   const trackMinAmount = streamer.settings?.trackRequestMinimum || 20
+    //   if (validatedData.amount < Number(trackMinAmount)) {
+    //     return NextResponse.json(
+    //       { error: `Minimum amount for track request is ${trackMinAmount} ${validatedData.currency}` },
+    //       { status: 400 },
+    //     )
+    //   }
+    // }
 
     // Подключаемся к MongoDB
     await connectToDatabase()
@@ -72,7 +135,13 @@ export async function POST(request: NextRequest) {
       amount: validatedData.amount,
       currency: validatedData.currency,
       message: validatedData.message,
-      trackRequest: validatedData.trackRequest,
+      trackRequest: validatedData.youtubeUrl
+        ? {
+            title: youtubeVideoInfo?.title || "YouTube Track",
+            artist: youtubeVideoInfo?.channelTitle || "",
+            url: validatedData.youtubeUrl,
+          }
+        : undefined,
       isAnonymous: validatedData.isAnonymous,
       paymentMethod: "test", // В будущем интегрируем реальные платежи
       paymentStatus: "completed",
@@ -111,7 +180,7 @@ export async function POST(request: NextRequest) {
         totalDonors: {
           increment: 1,
         },
-        totalTrackRequests: validatedData.trackRequest
+        totalTrackRequests: validatedData.youtubeUrl
           ? {
               increment: 1,
             }
@@ -149,7 +218,13 @@ export async function POST(request: NextRequest) {
           amount: validatedData.amount,
           currency: validatedData.currency,
           message: validatedData.message,
-          trackRequest: validatedData.trackRequest,
+          trackRequest: validatedData.youtubeUrl
+            ? {
+                title: youtubeVideoInfo?.title || "YouTube Track",
+                artist: youtubeVideoInfo?.channelTitle || "",
+                url: validatedData.youtubeUrl,
+              }
+            : undefined,
           timestamp: Date.now(),
         }
 

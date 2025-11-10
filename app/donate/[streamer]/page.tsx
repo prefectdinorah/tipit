@@ -49,11 +49,18 @@ export default function DonatePage() {
   const [message, setMessage] = useState("")
   const [trackRequest, setTrackRequest] = useState("")
   const [trackUrl, setTrackUrl] = useState("")
+  const [youtubeUrl, setYoutubeUrl] = useState("")
   const [senderName, setSenderName] = useState("")
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("")
   const [showTrackRequest, setShowTrackRequest] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isValidatingYoutube, setIsValidatingYoutube] = useState(false)
+  const [youtubeValidation, setYoutubeValidation] = useState<{
+    isValid: boolean
+    videoInfo?: any
+    error?: string
+  } | null>(null)
 
   const { toast, ToastContainer } = useToast()
 
@@ -73,8 +80,53 @@ export default function DonatePage() {
     if (currentAmount < trackMinimum) {
       setTrackRequest("")
       setTrackUrl("")
+      setYoutubeUrl("")
+      setYoutubeValidation(null)
     }
   }, [amount, customAmount, streamer])
+
+  // Валидация YouTube URL при изменении
+  useEffect(() => {
+    if (!youtubeUrl || !streamer) {
+      setYoutubeValidation(null)
+      return
+    }
+
+    const validateYoutube = async () => {
+      setIsValidatingYoutube(true)
+      try {
+        const response = await fetch("/api/music/validate-youtube", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ youtubeUrl }),
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          setYoutubeValidation({
+            isValid: true,
+            videoInfo: data.videoInfo,
+          })
+        } else {
+          setYoutubeValidation({
+            isValid: false,
+            error: data.error || "Invalid YouTube video",
+          })
+        }
+      } catch (error) {
+        setYoutubeValidation({
+          isValid: false,
+          error: "Failed to validate YouTube URL",
+        })
+      } finally {
+        setIsValidatingYoutube(false)
+      }
+    }
+
+    const debounceTimer = setTimeout(validateYoutube, 800)
+    return () => clearTimeout(debounceTimer)
+  }, [youtubeUrl, streamer])
 
   const loadStreamerData = async () => {
     try {
@@ -155,14 +207,7 @@ export default function DonatePage() {
         amount: currentAmount,
         currency,
         message: message || undefined,
-        trackRequest:
-          trackRequest && trackUrl
-            ? {
-                title: trackRequest,
-                artist: "",
-                url: trackUrl,
-              }
-            : undefined,
+        youtubeUrl: youtubeUrl || undefined,
         isAnonymous,
       }
 
@@ -194,6 +239,8 @@ export default function DonatePage() {
       setMessage("")
       setTrackRequest("")
       setTrackUrl("")
+      setYoutubeUrl("")
+      setYoutubeValidation(null)
       setSenderName("")
       setPaymentMethod("")
     } catch (error) {
@@ -374,36 +421,61 @@ export default function DonatePage() {
                     <div className="space-y-4 p-4 bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-lg border border-purple-700/30">
                       <div className="flex items-center space-x-2">
                         <Music className="h-5 w-5 text-purple-400" />
-                        <Label className="text-purple-300 text-base font-medium">Request a Track</Label>
+                        <Label className="text-purple-300 text-base font-medium">Request a YouTube Track</Label>
                         <Badge className="bg-purple-600 text-white text-xs">Available</Badge>
                       </div>
 
                       <div>
-                        <Label htmlFor="track" className="text-purple-300 text-sm">
-                          Song Name & Artist
+                        <Label htmlFor="youtubeUrl" className="text-purple-300 text-sm">
+                          YouTube URL
                         </Label>
                         <Input
-                          id="track"
-                          placeholder="e.g., Bohemian Rhapsody - Queen"
-                          value={trackRequest}
-                          onChange={(e) => setTrackRequest(e.target.value)}
-                          className="mt-1 bg-slate-700/50 border-purple-800/30 text-white placeholder:text-purple-400"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="trackUrl" className="text-purple-300 text-sm">
-                          Track URL
-                        </Label>
-                        <Input
-                          id="trackUrl"
+                          id="youtubeUrl"
                           placeholder="https://youtube.com/watch?v=..."
-                          value={trackUrl}
-                          onChange={(e) => setTrackUrl(e.target.value)}
+                          value={youtubeUrl}
+                          onChange={(e) => setYoutubeUrl(e.target.value)}
                           className="mt-1 bg-slate-700/50 border-purple-800/30 text-white placeholder:text-purple-400"
                           disabled={isSubmitting}
                         />
+                        {isValidatingYoutube && (
+                          <p className="text-xs text-purple-400 mt-1 flex items-center">
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Validating video...
+                          </p>
+                        )}
+                        {youtubeValidation && !isValidatingYoutube && (
+                          <div className="mt-2">
+                            {youtubeValidation.isValid && youtubeValidation.videoInfo ? (
+                              <div className="flex items-start space-x-3 p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
+                                {youtubeValidation.videoInfo.thumbnailUrl && (
+                                  <img
+                                    src={youtubeValidation.videoInfo.thumbnailUrl}
+                                    alt="Video thumbnail"
+                                    className="w-20 h-auto rounded"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-green-300 truncate">
+                                    {youtubeValidation.videoInfo.title}
+                                  </p>
+                                  <p className="text-xs text-green-400 mt-1">
+                                    Duration: {Math.floor(youtubeValidation.videoInfo.duration / 60)}:
+                                    {(youtubeValidation.videoInfo.duration % 60).toString().padStart(2, "0")}
+                                  </p>
+                                  <p className="text-xs text-green-400">
+                                    {youtubeValidation.videoInfo.views.toLocaleString()} views
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <Alert className="bg-red-900/20 border-red-700/50">
+                                <AlertDescription className="text-red-300 text-sm">
+                                  {youtubeValidation.error}
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
