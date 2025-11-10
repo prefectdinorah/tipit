@@ -40,6 +40,8 @@ model User {
   socialLinks   SocialLink[]
   statistics    UserStatistic[]
   alertPresets  AlertPreset[]
+  musicQueue    MusicQueue[]
+  musicBlacklist MusicBlacklist[]
 
   @@map("users")
 }
@@ -315,4 +317,42 @@ model AlertPreset {
   @@index([userId, minAmount, maxAmount])
   @@index([userId, priority])
   @@map("alert_presets")
+}
+
+model MusicQueue {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  donorName      String   @map("donor_name")
+  youtubeUrl     String   @map("youtube_url")
+  youtubeId      String   @map("youtube_id")
+  title          String?
+  duration       Int?
+  thumbnailUrl   String?  @map("thumbnail_url")
+  donationAmount Decimal  @map("donation_amount") @db.Decimal(10, 2)
+  status         String   @default("pending")
+  orderIndex     Int      @default(0) @map("order_index")
+  createdAt      DateTime @default(now()) @map("created_at")
+  playedAt       DateTime? @map("played_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+  @@index([userId, orderIndex])
+  @@map("music_queue")
+}
+
+model MusicBlacklist {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  youtubeId  String?  @map("youtube_id")
+  channelId  String?  @map("channel_id")
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([youtubeId])
+  @@index([channelId])
+  @@map("music_blacklist")
 }
